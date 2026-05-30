@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lumen — Design Research Canvas</title>
+<style>
+  :root {
+    /* Jeton — vibrant red accent on white */
+    --color-canvas-white: #ffffff;
+    --color-text-black: #000000;
+    --color-jeton-red: #f73b20;
+    --color-red-velvet: #360802;
+    --color-flamingo-pink: #f84d35;
+    --color-fiery-rose: #fb2d54;
+    --color-ocean-blue: #477ee9;
+    --color-mint-green: #34c771;
+
+    --red-tint: rgba(247,59,32,0.05);
+    --red-tint-2: rgba(247,59,32,0.10);
+    --gradient-sunrise: linear-gradient(rgba(122,39,57,0) 15%, rgb(247,59,32) 69%);
+
+    --font-sequel: 'Sequel Sans', 'Inter', 'Montserrat', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+    --text-caption: 12px;
+    --text-body-sm: 14px;
+    --text-body: 16px;
+    --text-subheading: 23px;
+    --text-heading-sm: 33px;
+
+    --border-hair: rgba(0,0,0,0.08);
+    --border-soft: rgba(0,0,0,0.14);
+
+    --radius-cards: 16px;
+    --radius-inputs: 16px;
+    --radius-buttons: 16px;
+    --radius-pills: 84px;
+    --radius-links: 8px;
+
+    --shadow-card: rgba(0,0,0,0.05) 0px -4px 16px 0px, rgba(0,0,0,0.04) 0px 2px 8px 0px;
+    --shadow-red: rgba(247,59,32,0.1) 0px 8px 24px 0px, rgba(247,59,32,0.05) 0px 2px 8px 0px;
+    --shadow-xl: rgba(247,59,32,0.12) 0px 16px 40px 0px, rgba(0,0,0,0.06) 0px 4px 12px 0px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%; overflow: hidden;
+    background: var(--color-canvas-white);
+    color: var(--color-text-black);
+    font-family: var(--font-sequel);
+    letter-spacing: 0.01em;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Soft animated red/sunrise accent gradients on white */
+  .atmosphere { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+  .blob { position: absolute; border-radius: 50%; filter: blur(90px); will-change: transform; }
+  .blob.green {
+    width: 50vw; height: 50vw; left: -10vw; top: -16vw; opacity: 0.18;
+    background: radial-gradient(circle, var(--color-jeton-red), transparent 66%);
+    animation: float-green 24s ease-in-out infinite alternate;
+  }
+  .blob.amber {
+    width: 46vw; height: 46vw; right: -8vw; top: -12vw; opacity: 0.16;
+    background: radial-gradient(circle, var(--color-flamingo-pink), transparent 66%);
+    animation: float-amber 28s ease-in-out infinite alternate;
+  }
+  .blob.red {
+    width: 60vw; height: 60vw; left: 28vw; bottom: -34vw; opacity: 0.14;
+    background: radial-gradient(circle, var(--color-fiery-rose), transparent 66%);
+    animation: float-red 32s ease-in-out infinite alternate;
+  }
+  @keyframes float-green { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(16vw,10vh) scale(1.15)} 100%{transform:translate(6vw,26vh) scale(0.95)} }
+  @keyframes float-amber { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(-13vw,16vh) scale(1.2)} 100%{transform:translate(-20vw,4vh) scale(0.9)} }
+  @keyframes float-red   { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(-10vw,-16vh) scale(1.1)} 100%{transform:translate(9vw,-7vh) scale(1.2)} }
+  @media (prefers-reduced-motion: reduce){ .blob{ animation:none !important; } }
+
+  /* ---- Top bar ---- */
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50; height: 64px;
+    display: flex; align-items: center; gap: 24px; padding: 0 24px;
+    background: rgba(255,255,255,0.85); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border-hair);
+  }
+  .brand { font-size: var(--text-subheading); font-weight: 500; letter-spacing: 0.01em; display: flex; align-items: center; gap: 10px; }
+  .brand .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--color-jeton-red); }
+  .brand .sub { font-size: var(--text-caption); color: var(--color-jeton-red); font-weight: 450; letter-spacing: 0.03em; text-transform: uppercase; }
+  .save-status { font-size: var(--text-caption); letter-spacing: 0.3px; color: var(--color-muted-ash, #6d6c6b); white-space: nowrap; transition: color .2s; }
+  .save-status.ok { color: var(--color-mint-green); }
+  .save-status.warn { color: var(--color-jeton-red); }
+
+  /* ---- Auth gate ---- */
+  .auth-gate {
+    position: fixed; inset: 0; z-index: 200; display: grid; place-items: center;
+    background: var(--color-canvas-white);
+  }
+  .auth-card {
+    width: 340px; max-width: 90vw; padding: 32px 28px;
+    border: 1px solid var(--border-hair); border-radius: var(--radius-cards);
+    box-shadow: var(--shadow-red); text-align: center;
+  }
+  .auth-lede { font-size: var(--text-body-sm); color: var(--color-red-velvet); opacity: 0.75; margin-bottom: 18px; }
+  .auth-card input {
+    width: 100%; background: var(--red-tint); border: 1px solid transparent;
+    border-radius: var(--radius-inputs); color: var(--color-text-black);
+    font-family: var(--font-sequel); font-size: var(--text-body); padding: 11px 14px; outline: none; margin-bottom: 10px;
+  }
+  .auth-card input:focus { border-color: var(--color-jeton-red); background: #fff; }
+  .auth-msg { font-size: var(--text-caption); color: var(--color-jeton-red); min-height: 16px; margin: 2px 0 6px; }
+
+  .search-wrap { flex: 1; max-width: 420px; }
+  .search {
+    width: 100%; height: 42px; background: var(--red-tint);
+    border: 1px solid transparent; border-radius: var(--radius-inputs);
+    color: var(--color-text-black); font-family: var(--font-sequel); font-size: var(--text-body);
+    padding: 0 18px; outline: none; transition: border-color .2s, background .2s;
+  }
+  .search::placeholder { color: var(--color-red-velvet); opacity: 0.5; }
+  .search:focus { border-color: var(--color-jeton-red); background: #fff; }
+
+  .spacer { flex: 1; }
+
+  .btn {
+    font-family: var(--font-sequel); font-size: var(--text-body-sm); font-weight: 450;
+    background: transparent; color: var(--color-text-black);
+    border: 1px solid var(--border-soft); border-radius: var(--radius-pills);
+    padding: 9px 18px; cursor: pointer; transition: all .15s; white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--color-text-black); }
+  .btn.active { background: transparent; color: var(--color-jeton-red); border-color: var(--color-jeton-red); }
+  .btn.active:hover { background: var(--red-tint); }
+  .btn-icon { display: inline-flex; align-items: center; gap: 7px; }
+
+  /* ---- Tag rail ---- */
+  .tagrail {
+    position: fixed; top: 64px; left: 0; right: 0; z-index: 40;
+    display: flex; align-items: center; gap: 8px; padding: 12px 24px;
+    background: rgba(255,255,255,0.75); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-hair);
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .tagrail::-webkit-scrollbar { display: none; }
+  .tag-chip {
+    font-size: var(--text-caption); letter-spacing: 0.12px; text-transform: uppercase; font-weight: 450;
+    color: var(--color-text-black); background: transparent;
+    border: 1px solid var(--border-soft); border-radius: var(--radius-pills);
+    padding: 6px 14px; cursor: pointer; transition: all .15s; white-space: nowrap;
+  }
+  .tag-chip:hover { border-color: var(--color-jeton-red); color: var(--color-jeton-red); }
+  .tag-chip.on { color: #fff; background: var(--color-jeton-red); border-color: var(--color-jeton-red); }
+  .tag-chip .cnt { opacity: 0.5; margin-left: 6px; }
+  .tag-chip.clear-filter { color: var(--color-jeton-red); border-color: var(--color-jeton-red); border-style: dashed; margin-left: 4px; }
+  .tag-chip.clear-filter:hover { background: var(--red-tint); }
+  .tag-chip.manage { color: var(--color-red-velvet); border-style: dashed; margin-left: 4px; }
+  .tag-chip.manage:hover { border-color: var(--color-text-black); color: var(--color-text-black); }
+
+  /* ---- Canvas ---- */
+  #viewport { position: fixed; inset: 0; z-index: 10; cursor: grab; }
+  #viewport.panning { cursor: grabbing; }
+  #world { position: absolute; top: 0; left: 0; transform-origin: 0 0; will-change: transform; }
+
+  .grid {
+    position: fixed; inset: 0; z-index: 5; pointer-events: none;
+    background-image: radial-gradient(rgba(247,59,32,0.07) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  /* ---- Cards ---- */
+  .card {
+    position: absolute; width: 252px; z-index: 2;
+    background: var(--color-canvas-white);
+    border: 1px solid var(--border-hair); border-radius: var(--radius-cards);
+    box-shadow: var(--shadow-card); overflow: hidden;
+    cursor: grab; transition: box-shadow .2s, border-color .2s, transform .15s;
+    animation: cardIn .35s cubic-bezier(.2,.7,.2,1) both;
+  }
+  @keyframes cardIn { from{opacity:0; transform:translateY(8px) scale(.98)} to{opacity:1; transform:none} }
+  .card:hover { box-shadow: var(--shadow-red); border-color: rgba(247,59,32,0.3); }
+  .card.dragging { cursor: grabbing; z-index: 999 !important; box-shadow: var(--shadow-xl); }
+  .card.resurfaced { border-color: var(--color-jeton-red); box-shadow: 0 0 0 2px rgba(247,59,32,0.3), var(--shadow-red); }
+  .card.popover-open { overflow: visible; z-index: 1001; }
+
+  .card img { width: 100%; display: block; max-height: 200px; object-fit: cover; }
+  .card .body { padding: 16px; }
+  .card .ttl { font-size: var(--text-body); font-weight: 500; line-height: 1.2; letter-spacing: 0.01em; padding-right: 56px; }
+  .card .note { font-size: var(--text-caption); line-height: 1.4; color: var(--color-red-velvet); opacity: 0.8; margin-top: 6px; white-space: pre-wrap; word-break: break-word; }
+  .card .reason {
+    font-size: var(--text-caption); line-height: 1.4; color: var(--color-text-black);
+    margin-top: 10px; padding: 9px 11px; background: var(--red-tint);
+    border-radius: 10px; word-break: break-word;
+  }
+  .card .reason-mark { font-size: 9px; font-weight: 500; letter-spacing: 0.4px; text-transform: uppercase; color: var(--color-jeton-red); display: block; margin-bottom: 3px; }
+  .card .link { font-size: var(--text-caption); color: var(--color-jeton-red); text-decoration: none; word-break: break-all; display: block; margin-top: 4px; font-weight: 450; }
+  .card .link:hover { text-decoration: underline; }
+  .card .palette { display: flex; gap: 4px; margin-top: 8px; }
+  .card .palette .swatch {
+    width: 30px; height: 22px; border-radius: 6px; border: 1px solid var(--border-hair); cursor: pointer;
+    transition: transform .12s;
+  }
+  .card .palette .swatch:hover { transform: scale(1.12); }
+  .card .meta { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 12px; align-items: center; }
+  .card .ct {
+    font-size: 10px; letter-spacing: 0.4px; text-transform: uppercase; font-weight: 450;
+    color: var(--color-jeton-red); background: var(--red-tint);
+    border-radius: var(--radius-pills); padding: 3px 9px;
+  }
+  .card .age { font-size: 10px; color: var(--color-red-velvet); opacity: 0.6; margin-left: auto; }
+  .card .embed { aspect-ratio: 16/9; width: 100%; border: 0; display: block; }
+
+  .card-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 4px; opacity: 0; transition: opacity .15s; }
+  .card:hover .card-actions { opacity: 1; }
+  .mini {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--color-canvas-white); border: 1px solid var(--border-hair);
+    color: var(--color-text-black); font-size: 13px; cursor: pointer;
+    display: grid; place-items: center; line-height: 1; box-shadow: var(--shadow-card); transition: all .15s;
+  }
+  .mini:hover { border-color: var(--color-jeton-red); color: var(--color-jeton-red); }
+
+  /* ---- Connections layer ---- */
+  #links { position: absolute; top: 0; left: 0; overflow: visible; pointer-events: none; z-index: 0; }
+  #links line { stroke: rgba(247,59,32,0.2); stroke-width: 1.5; }
+  #links line.hot { stroke: var(--color-jeton-red); stroke-width: 2; }
+
+  /* ---- Hint ---- */
+  .hint {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 45;
+    font-size: var(--text-caption); color: var(--color-red-velvet);
+    background: var(--color-canvas-white); border: 1px solid var(--border-hair); border-radius: var(--radius-pills);
+    padding: 10px 20px; display: flex; gap: 14px; align-items: center; box-shadow: var(--shadow-card);
+  }
+  .hint kbd {
+    font-family: var(--font-sequel); font-size: 11px; font-weight: 450;
+    background: var(--red-tint); border: 1px solid transparent;
+    border-radius: 6px; padding: 1px 7px; color: var(--color-jeton-red);
+  }
+
+  /* ---- Resurface panel ---- */
+  .panel {
+    position: fixed; top: 64px; right: 0; bottom: 0; width: 320px; z-index: 60;
+    background: var(--color-canvas-white); border-left: 1px solid var(--border-hair);
+    box-shadow: var(--shadow-xl);
+    transform: translateX(100%); transition: transform .35s cubic-bezier(.2,.7,.2,1);
+    padding: 24px; overflow-y: auto;
+  }
+  .panel.open { transform: none; }
+  .panel h2 { font-size: var(--text-subheading); font-weight: 500; letter-spacing: 0.01em; }
+  .panel p.lede { font-size: var(--text-caption); color: var(--color-red-velvet); opacity: 0.7; margin-top: 6px; line-height: 1.4; }
+  .rsf-item {
+    margin-top: 12px; padding: 14px; border: 1px solid var(--border-hair);
+    border-radius: var(--radius-cards); cursor: pointer; transition: all .2s; background: var(--color-canvas-white);
+  }
+  .rsf-item:hover { border-color: var(--color-jeton-red); box-shadow: var(--shadow-red); }
+  .rsf-item .t { font-size: var(--text-body-sm); font-weight: 500; }
+  .rsf-item .a { font-size: 11px; color: var(--color-red-velvet); opacity: 0.6; margin-top: 4px; }
+  .panel-close { position: absolute; top: 18px; right: 18px; }
+
+  /* manage-tags rows */
+  .mtag-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    margin-top: 8px; padding: 10px 12px; border: 1px solid var(--border-hair); border-radius: var(--radius-inputs);
+  }
+  .mtag-row .name { font-size: var(--text-body-sm); font-weight: 450; }
+  .mtag-row .name .c { color: var(--color-red-velvet); opacity: 0.5; margin-left: 6px; font-size: 11px; }
+  .mtag-del {
+    font-family: var(--font-sequel); font-size: 11px; color: var(--color-jeton-red);
+    background: transparent; border: 1px solid var(--color-jeton-red); border-radius: var(--radius-pills);
+    padding: 4px 12px; cursor: pointer; transition: all .15s; white-space: nowrap;
+  }
+  .mtag-del:hover { background: var(--color-jeton-red); color: #fff; }
+
+  /* ---- Add modal ---- */
+  .modal-bg { position: fixed; inset: 0; z-index: 80; background: rgba(54,8,2,0.3); backdrop-filter: blur(4px); display: none; place-items: center; }
+  .modal-bg.open { display: grid; }
+  .modal {
+    width: 440px; max-width: 92vw; background: var(--color-canvas-white);
+    border: 1px solid var(--border-hair); border-radius: var(--radius-cards);
+    padding: 24px; box-shadow: var(--shadow-xl); animation: cardIn .3s both;
+  }
+  .modal h3 { font-size: var(--text-subheading); font-weight: 500; margin-bottom: 12px; letter-spacing: 0.01em; }
+  .modal label { font-size: var(--text-caption); color: var(--color-red-velvet); opacity: 0.8; display: block; margin: 14px 0 5px; text-transform: uppercase; font-weight: 450; letter-spacing: 0.3px; }
+  .modal input, .modal textarea {
+    width: 100%; background: var(--red-tint); border: 1px solid transparent;
+    border-radius: var(--radius-inputs); color: var(--color-text-black);
+    font-family: var(--font-sequel); font-size: var(--text-body); padding: 11px 14px; outline: none;
+  }
+  .modal input:focus, .modal textarea:focus { border-color: var(--color-jeton-red); background: #fff; }
+  .modal textarea { resize: vertical; min-height: 56px; }
+  .modal .row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 24px; }
+  .seg { display: flex; gap: 6px; margin-bottom: 8px; }
+  .seg button {
+    flex: 1; font-family: var(--font-sequel); font-size: var(--text-caption); font-weight: 450; letter-spacing: 0.3px;
+    background: transparent; color: var(--color-red-velvet);
+    border: 1px solid var(--border-soft); border-radius: var(--radius-pills);
+    padding: 9px; cursor: pointer; transition: all .15s; text-transform: uppercase;
+  }
+  .seg button.on { background: var(--color-jeton-red); color: #fff; border-color: var(--color-jeton-red); }
+
+  /* ---- Tag picker ---- */
+  .tagpicker { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .tp-tag {
+    font-size: var(--text-caption); letter-spacing: 0.12px; font-weight: 450;
+    color: var(--color-jeton-red); background: var(--red-tint);
+    border: 1px solid transparent; border-radius: var(--radius-pills);
+    padding: 5px 13px; cursor: pointer; transition: all .15s; white-space: nowrap;
+  }
+  .tp-tag:hover { background: var(--red-tint-2); }
+  .tp-tag.on { color: #fff; background: var(--color-jeton-red); }
+  .tp-new {
+    font-size: var(--text-caption); background: #fff;
+    border: 1px dashed var(--color-jeton-red); border-radius: var(--radius-pills);
+    color: var(--color-text-black); padding: 5px 13px; width: 110px; outline: none; font-family: var(--font-sequel);
+  }
+  .tp-new::placeholder { color: var(--color-red-velvet); opacity: 0.5; }
+
+  /* inline card tag/why popover */
+  .card-tagpop {
+    position: absolute; z-index: 1000; top: 8px; left: 8px; right: 8px;
+    background: var(--color-canvas-white); border: 1px solid rgba(247,59,32,0.3);
+    border-radius: var(--radius-cards); padding: 14px; box-shadow: var(--shadow-xl);
+    animation: cardIn .2s both;
+  }
+  .card-tagpop .pop-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .card-tagpop .ttl-pop { font-size: 10px; letter-spacing: 0.4px; text-transform: uppercase; font-weight: 500; color: var(--color-jeton-red); }
+  .card-tagpop .pop-x {
+    width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border-hair);
+    background: #fff; color: var(--color-text-black); cursor: pointer;
+    font-size: 13px; line-height: 1; display: grid; place-items: center;
+  }
+  .card-tagpop .pop-x:hover { border-color: var(--color-jeton-red); color: var(--color-jeton-red); }
+  .card-tagpop .why-field, .card-tagpop .link-field {
+    width: 100%; background: var(--red-tint); border: 1px solid transparent;
+    border-radius: 10px; color: var(--color-text-black); font-family: var(--font-sequel);
+    font-size: var(--text-caption); padding: 9px 11px; outline: none; margin-bottom: 10px;
+  }
+  .card-tagpop .why-field { resize: none; min-height: 46px; }
+  .card-tagpop .why-field:focus, .card-tagpop .link-field:focus { border-color: var(--color-jeton-red); background: #fff; }
+  .card-tagpop .why-field::placeholder, .card-tagpop .link-field::placeholder { color: var(--color-red-velvet); opacity: 0.5; }
+  .card-tagpop .done {
+    margin-top: 10px; width: 100%; font-family: var(--font-sequel); font-size: var(--text-body-sm); font-weight: 450;
+    background: transparent; color: var(--color-jeton-red); border: 1px solid var(--color-jeton-red);
+    border-radius: var(--radius-buttons); padding: 10px; cursor: pointer; transition: all .15s;
+  }
+  .card-tagpop .done:hover { background: var(--color-jeton-red); color: #fff; }
+
+  /* ---- Lightbox ---- */
+  .lightbox {
+    position: fixed; inset: 0; z-index: 100; display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    background: rgba(54,8,2,0.55); backdrop-filter: blur(8px); padding: 48px;
+  }
+  .lightbox.open { display: flex; animation: cardIn .2s both; }
+  .lb-stage { flex: 1; display: grid; place-items: center; max-width: 92vw; min-height: 0; }
+  .lb-stage img {
+    max-width: 100%; max-height: 78vh; border-radius: var(--radius-cards);
+    box-shadow: rgba(0,0,0,0.3) 0px 20px 60px; background: #fff;
+  }
+  .lb-close {
+    position: absolute; top: 24px; right: 24px; width: 44px; height: 44px; border-radius: 50%;
+    background: var(--color-canvas-white); border: 1px solid var(--border-hair);
+    color: var(--color-text-black); font-size: 18px; cursor: pointer; display: grid; place-items: center;
+    transition: all .15s; z-index: 2;
+  }
+  .lb-close:hover { border-color: var(--color-jeton-red); color: var(--color-jeton-red); }
+  .lb-bar {
+    display: flex; align-items: center; gap: 16px; margin-top: 20px;
+    background: var(--color-canvas-white); border: 1px solid var(--border-hair);
+    border-radius: var(--radius-pills); padding: 10px 12px 10px 20px; box-shadow: var(--shadow-card);
+  }
+  .lb-title { font-size: var(--text-body-sm); font-weight: 500; color: var(--color-text-black); max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lb-actions { display: flex; gap: 8px; }
+  .lb-btn {
+    font-family: var(--font-sequel); font-size: var(--text-body-sm); font-weight: 450;
+    background: transparent; color: var(--color-jeton-red); border: 1px solid var(--color-jeton-red);
+    border-radius: var(--radius-pills); padding: 8px 16px; cursor: pointer; transition: all .15s; white-space: nowrap;
+  }
+  .lb-btn:hover { background: var(--color-jeton-red); color: #fff; }
+  .lb-btn.ok { background: var(--color-mint-green); border-color: var(--color-mint-green); color: #fff; }
+
+  /* zoom controls */
+  .zoom { position: fixed; left: 24px; bottom: 24px; z-index: 45; display: flex; flex-direction: column; gap: 6px; }
+  .zoom button {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--color-canvas-white); border: 1px solid var(--border-hair);
+    color: var(--color-text-black); font-size: 18px; cursor: pointer;
+    display: grid; place-items: center; box-shadow: var(--shadow-card); transition: all .15s;
+  }
+  .zoom button:hover { border-color: var(--color-jeton-red); color: var(--color-jeton-red); }
+</style>
+</head>
+<body>
+  <div class="atmosphere">
+    <div class="blob green"></div>
+    <div class="blob amber"></div>
+    <div class="blob red"></div>
+  </div>
+  <div class="grid" id="gridLayer"></div>
+
+  <div id="viewport">
+    <div id="world">
+      <svg id="links"></svg>
+    </div>
+  </div>
+
+  <header class="topbar">
+    <div class="brand"><span class="dot"></span>Lumen <span class="sub">research canvas</span></div>
+    <div class="search-wrap">
+      <input class="search" id="search" placeholder="Search notes, titles, tags…" />
+    </div>
+    <div class="spacer"></div>
+    <span class="save-status ok" id="saveStatus">✓ Synced</span>
+    <button class="btn btn-icon" id="netBtn">◉ Connections</button>
+    <button class="btn btn-icon active" id="addBtn">＋ Add</button>
+    <button class="btn btn-icon" id="signOutBtn" title="Sign out" style="display:none">⇥</button>
+  </header>
+
+  <div class="auth-gate" id="authGate" style="display:none">
+    <div class="auth-card">
+      <div class="brand" style="justify-content:center; margin-bottom:6px"><span class="dot"></span>Lumen</div>
+      <p class="auth-lede">Sign in to sync your canvas across devices.</p>
+      <input id="authEmail" type="email" placeholder="you@email.com" autocomplete="username"/>
+      <input id="authPass" type="password" placeholder="Password" autocomplete="current-password"/>
+      <div id="authMsg" class="auth-msg"></div>
+      <button class="btn active" id="authSignIn" style="width:100%; justify-content:center; margin-top:4px">Sign in</button>
+      <button class="btn" id="authSignUp" style="width:100%; justify-content:center; margin-top:8px">Create account</button>
+    </div>
+  </div>
+
+  <nav class="tagrail" id="tagrail"></nav>
+
+  <div class="zoom">
+    <button id="zarrange" style="font-size:15px" title="Auto-arrange by tags">✦</button>
+    <button id="zin">＋</button>
+    <button id="zout">－</button>
+    <button id="zfit" style="font-size:12px">⤢</button>
+  </div>
+
+  <!-- Add modal -->
+  <div class="modal-bg" id="modalBg">
+    <div class="modal">
+      <h3>Add to canvas</h3>
+      <div class="seg" id="typeSeg">
+        <button data-t="note" class="on">Note</button>
+        <button data-t="link">Link</button>
+        <button data-t="embed">Embed</button>
+      </div>
+      <div id="fTitle"><label>Title</label><input id="mTitle" placeholder="e.g. Stripe's onboarding flow"/></div>
+      <div id="fUrl" style="display:none"><label>URL (link or YouTube)</label><input id="mUrl" placeholder="https://…"/></div>
+      <label>Note</label>
+      <textarea id="mNote" placeholder="Details, context, anything to remember…"></textarea>
+      <label>Why save this?</label>
+      <textarea id="mReason" placeholder="A quick note to future you…"></textarea>
+      <label>Tags</label>
+      <div class="tagpicker" id="mTagPicker"></div>
+      <div class="row">
+        <button class="btn" id="mCancel">Cancel</button>
+        <button class="btn active" id="mSave">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-bg" id="manageBg">
+    <div class="modal">
+      <h3>Manage tags</h3>
+      <p class="lede" style="font-size:var(--text-caption); color:var(--color-red-velvet); opacity:.7; margin-bottom:8px; line-height:1.4">Add a tag to make it available everywhere, or delete one to remove it from every card. This can't be undone.</p>
+      <div style="display:flex; gap:8px; margin-bottom:8px">
+        <input id="mtagNew" placeholder="New tag name…" style="flex:1"/>
+        <button class="btn active" id="mtagAdd">Add</button>
+      </div>
+      <div id="mtagList" style="max-height:300px; overflow-y:auto"></div>
+      <div class="row">
+        <button class="btn active" id="manageClose">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="lightbox" id="lightbox">
+    <button class="lb-close" id="lbClose" title="Close">✕</button>
+    <div class="lb-stage" id="lbStage">
+      <img id="lbImg" alt=""/>
+    </div>
+    <div class="lb-bar">
+      <span class="lb-title" id="lbTitle"></span>
+      <div class="lb-actions">
+        <button class="lb-btn" id="lbCopy">⧉ Copy</button>
+        <button class="lb-btn" id="lbDownload">↓ Download</button>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+/* ============================================================
+   SUPABASE CONFIG — paste your project's values here.
+   Find them in: Supabase dashboard → Project Settings → API Keys.
+   Copy the "publishable" key (format: sb_publishable_...). This is
+   the current key for client-side use — it replaced the old "anon"
+   key in late 2025. Legacy projects may still show an "anon public"
+   key, which also works. The publishable key is safe to ship in
+   client code; Row-Level Security (set up in supabase-schema.sql)
+   is what actually protects your data.
+   ============================================================ */
+const SUPABASE_URL = 'https://foanseqiqxsxirelbqpt.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_J9OP0mobJL3_UqSaJ6tNOQ_RFS803dt';
+
+const sb = (window.supabase && SUPABASE_URL.indexOf('YOUR-PROJECT')===-1)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
+  : null;
+
+let currentUser = null;
+
+/* ============================================================
+   DATA STORE — single source of truth for persistence.
+   Backed by Supabase (Postgres + Storage). Same method names the
+   rest of the app already calls, so nothing downstream changed.
+     cards        -> public.cards (row-level secured to the user)
+     globalTags   -> public.user_meta key='globalTags'
+     images       -> storage bucket 'card-images', card holds the URL
+   ============================================================ */
+const store = (()=>{
+  const available = !!sb;
+
+  // Map a DB row (snake_case) to the app's card shape (camelCase)
+  function rowToCard(r){
+    return {
+      id:r.id, type:r.type, title:r.title, note:r.note||'', reason:r.reason||'',
+      url:r.url||'', img:r.image_url||null, imagePath:r.image_path||null,
+      mode:r.mode||null, palette:r.palette||null, tags:r.tags||[],
+      x:r.x, y:r.y, createdAt:Number(r.created_at), touchedAt:Number(r.touched_at), el:null
+    };
+  }
+  function cardToRow(c){
+    return {
+      id:c.id, user_id:currentUser?.id, type:c.type, title:c.title, note:c.note,
+      reason:c.reason, url:c.url, image_url:c.img&&/^https?:/.test(c.img)?c.img:null,
+      image_path:c.imagePath||null, mode:c.mode, palette:c.palette, tags:c.tags,
+      x:c.x, y:c.y, created_at:c.createdAt, touched_at:c.touchedAt, updated_at:new Date().toISOString()
+    };
+  }
+
+  return {
+    available,
+    async allCards(){
+      if(!available||!currentUser) return [];
+      const { data, error } = await sb.from('cards').select('*').order('created_at');
+      if(error) throw error;
+      return (data||[]).map(rowToCard);
+    },
+    async saveCard(c){
+      if(!available||!currentUser) return;
+      const { error } = await sb.from('cards').upsert(cardToRow(c));
+      if(error) throw error;
+    },
+    async deleteCard(id){
+      if(!available||!currentUser) return;
+      await sb.from('cards').delete().eq('id', id);
+    },
+    /* Upload an image blob to storage, return its public CDN URL + path */
+    async uploadImage(blob, cardId){
+      if(!available||!currentUser) return null;
+      const ext = (blob.type.split('/')[1]||'png').replace('+xml','');
+      const path = `${currentUser.id}/${cardId}.${ext}`;
+      const { error } = await sb.storage.from('card-images').upload(path, blob, { upsert:true, contentType:blob.type });
+      if(error) throw error;
+      const { data } = sb.storage.from('card-images').getPublicUrl(path);
+      return { url:data.publicUrl, path };
+    },
+    async deleteImage(path){
+      if(!available||!currentUser||!path) return;
+      await sb.storage.from('card-images').remove([path]);
+    },
+    async getMeta(k, dflt){
+      if(!available||!currentUser) return dflt;
+      const { data } = await sb.from('user_meta').select('value').eq('key',k).maybeSingle();
+      return data ? data.value : dflt;
+    },
+    async setMeta(k, v){
+      if(!available||!currentUser) return;
+      await sb.from('user_meta').upsert({ user_id:currentUser.id, key:k, value:v });
+    },
+  };
+})();
+
+/* base64 dataURL -> Blob (for uploading pasted images) */
+function b64ToBlob(dataUrl){
+  const [head,b64]=dataUrl.split(','); const mime=(head.match(/data:([^;]+)/)||[])[1]||'image/png';
+  const bin=atob(b64); const arr=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+  return new Blob([arr],{type:mime});
+}
+
+/* Debounced auto-save with a topbar indicator */
+let saveTimer=null; const savePending=new Set();
+function markDirty(c){ if(c) savePending.add(c); scheduleSave(); }
+function scheduleSave(){ setSaveStatus('saving'); clearTimeout(saveTimer); saveTimer=setTimeout(flushSave,600); }
+async function flushSave(){
+  try {
+    const batch=[...savePending]; savePending.clear();
+    for(const c of batch){ await store.saveCard(c); }
+    await store.setMeta('globalTags', globalTags);
+    setSaveStatus('saved');
+  } catch(e){ setSaveStatus('error'); }
+}
+function setSaveStatus(s){
+  const el=document.getElementById('saveStatus'); if(!el) return;
+  if(!store.available){ el.textContent='⚠ Not connected'; el.className='save-status warn'; return; }
+  if(s==='saving'){ el.textContent='Saving…'; el.className='save-status'; }
+  else if(s==='saved'){ el.textContent='✓ Synced'; el.className='save-status ok'; }
+  else { el.textContent='⚠ Sync failed'; el.className='save-status warn'; }
+}
+
+/* ---------------- State ---------------- */
+const PALETTE = ['#a0e0ab','#ffac2e','#a52d25'];
+let cards = [];
+let activeTags = new Set();
+let query = '';
+let netMode = false;
+let globalTags = []; // tags created but not yet on any card
+const view = { x: 120, y: 60, k: 1 };
+const DAY = 86400000;
+const newId = ()=> (crypto.randomUUID ? crypto.randomUUID() : 'c_'+Date.now()+'_'+Math.random().toString(36).slice(2));
+
+/* ---------------- DOM refs ---------------- */
+const world = document.getElementById('world');
+const linksSvg = document.getElementById('links');
+const viewport = document.getElementById('viewport');
+const tagrail = document.getElementById('tagrail');
+const gridLayer = document.getElementById('gridLayer');
+
+/* ---------------- Auth ---------------- */
+async function initAuth(){
+  if(!sb){ showApp(); renderTags(); renderAll(); applyView(); setSaveStatus('saved'); return; } // no config → offline/demo mode
+  const { data } = await sb.auth.getSession();
+  if(data.session){ currentUser = data.session.user; showApp(); loadData(); }
+  else showAuth();
+  sb.auth.onAuthStateChange((_e, session)=>{
+    currentUser = session?.user || null;
+  });
+}
+function showAuth(){ document.getElementById('authGate').style.display='grid'; document.getElementById('signOutBtn').style.display='none'; }
+function hideAuth(){ document.getElementById('authGate').style.display='none'; }
+function showApp(){ hideAuth(); if(sb) document.getElementById('signOutBtn').style.display=''; }
+
+async function doAuth(mode){
+  const email=document.getElementById('authEmail').value.trim();
+  const pass=document.getElementById('authPass').value;
+  const msg=document.getElementById('authMsg');
+  msg.textContent='';
+  if(!email||!pass){ msg.textContent='Enter an email and password.'; return; }
+  try {
+    const fn = mode==='signup' ? sb.auth.signUp({email,password:pass}) : sb.auth.signInWithPassword({email,password:pass});
+    const { data, error } = await fn;
+    if(error){ msg.textContent=error.message; return; }
+    if(mode==='signup' && !data.session){ msg.textContent='Check your email to confirm, then sign in.'; return; }
+    currentUser = data.user || data.session?.user;
+    showApp(); loadData();
+  } catch(e){ msg.textContent='Something went wrong.'; }
+}
+async function signOut(){ if(sb){ await sb.auth.signOut(); } location.reload(); }
+
+/* ---------------- Load data for the signed-in user ---------------- */
+async function loadData(){
+  cards.forEach(c=>c.el&&c.el.remove()); cards=[];
+  applyView();
+  try {
+    globalTags = await store.getMeta('globalTags', []);
+    const loaded = await store.allCards();
+    loaded.forEach(c=>cards.push(c));
+  } catch(e){ /* leave empty */ }
+  renderTags(); renderAll();
+  setSaveStatus('saved');
+}
+
+/* ---------------- Card model ---------------- */
+function addCard(data){
+  const c = {
+    id: data.id||newId(), type: data.type||'note', title: data.title||'Untitled',
+    note: data.note||'', reason: data.reason||'', url: data.url||'', img: data.img||null,
+    imagePath: data.imagePath||null,
+    mode: data.mode||null, palette: data.palette||null,
+    tags: data.tags||[], x: data.x??(-view.x+200)/view.k, y: data.y??(-view.y+160)/view.k,
+    createdAt: data.createdAt||Date.now(), touchedAt: data.touchedAt||Date.now(),
+    el: null
+  };
+  cards.push(c);
+  return c;
+}
+
+/* Analyze an image data-URL: returns {mode, palette} via an offscreen canvas.
+   mode = 'light' | 'dark' (avg perceived luminance).
+   palette = array of 4 dominant hex colors (coarse quantization + frequency). */
+function analyzeImage(dataUrl){
+  return new Promise(resolve=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const W=64, H=Math.max(1, Math.round(64*img.height/img.width));
+      const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+      const ctx=cv.getContext('2d', {willReadFrequently:true});
+      ctx.drawImage(img,0,0,W,H);
+      let data;
+      try { data = ctx.getImageData(0,0,W,H).data; }
+      catch(e){ resolve({mode:null, palette:null}); return; } // tainted canvas
+      let lumSum=0, n=0;
+      const buckets={};
+      for(let i=0;i<data.length;i+=4){
+        const r=data[i], g=data[i+1], b=data[i+2], a=data[i+3];
+        if(a<128) continue;
+        // perceived luminance
+        lumSum += 0.2126*r + 0.7152*g + 0.0722*b; n++;
+        // quantize to 5 levels/channel for clustering
+        const key = (r>>5)+'-'+(g>>5)+'-'+(b>>5);
+        if(!buckets[key]) buckets[key]={count:0, r:0, g:0, b:0};
+        const bk=buckets[key]; bk.count++; bk.r+=r; bk.g+=g; bk.b+=b;
+      }
+      const avgLum = n? lumSum/n : 128;
+      const mode = avgLum < 128 ? 'dark' : 'light';
+      // top buckets by frequency, averaged to real color, deduped by closeness
+      const sorted = Object.values(buckets).sort((a,b)=>b.count-a.count);
+      const palette=[];
+      for(const bk of sorted){
+        const r=Math.round(bk.r/bk.count), g=Math.round(bk.g/bk.count), b=Math.round(bk.b/bk.count);
+        const tooClose = palette.some(p=>Math.abs(p[0]-r)+Math.abs(p[1]-g)+Math.abs(p[2]-b) < 40);
+        if(!tooClose) palette.push([r,g,b]);
+        if(palette.length>=4) break;
+      }
+      const hex = palette.map(([r,g,b])=>'#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join(''));
+      resolve({mode, palette: hex});
+    };
+    img.onerror = ()=> resolve({mode:null, palette:null});
+    img.src = dataUrl;
+  });
+}
+
+function ytId(url){
+  const m = url.match(/(?:youtu\.be\/|v=|embed\/)([\w-]{11})/);
+  return m ? m[1] : null;
+}
+
+/* Derive a clean human name from a URL's domain as a fallback */
+function prettyDomain(url){
+  try {
+    const h = new URL(url).hostname.replace(/^www\./,'');
+    const core = h.split('.')[0];
+    return core.charAt(0).toUpperCase()+core.slice(1);
+  } catch { return url; }
+}
+
+/* Fetch a real title. YouTube via oembed (CORS-friendly, no key);
+   general links try noembed, then fall back to prettyDomain. */
+async function fetchTitle(url){
+  try {
+    if(ytId(url)){
+      const r = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`);
+      if(r.ok){ const j = await r.json(); return j.title || null; }
+    } else {
+      const r = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(url)}`);
+      if(r.ok){ const j = await r.json(); if(j.title) return j.title; }
+    }
+  } catch(e){ /* CORS or offline — fall through */ }
+  return null;
+}
+
+/* Update a card's title async, updating text in place (preserves open popover) */
+function hydrateTitle(c){
+  fetchTitle(c.url).then(t=>{
+    if(t){
+      c.title = t;
+      const ttl = c.el?.querySelector('.ttl');
+      if(ttl) ttl.textContent = t;
+      markDirty(c);
+    }
+  });
+}
+function ageLabel(c){
+  const d = Math.floor((Date.now()-c.touchedAt)/DAY);
+  if (d<1) return 'today'; if (d===1) return '1d'; if (d<30) return d+'d';
+  return Math.floor(d/30)+'mo';
+}
+
+/* Saved-on date as "26th May, 2026" */
+function savedDate(c){
+  const dt = new Date(c.createdAt);
+  const day = dt.getDate();
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const suffix = (n)=>{
+    if(n>=11 && n<=13) return 'th';
+    switch(n%10){ case 1: return 'st'; case 2: return 'nd'; case 3: return 'rd'; default: return 'th'; }
+  };
+  return `${day}${suffix(day)} ${months[dt.getMonth()]}, ${dt.getFullYear()}`;
+}
+
+/* ---------------- Render ---------------- */
+function buildCardEl(c){
+  const el = document.createElement('div');
+  el.className = 'card'; el.dataset.id = c.id;
+  el.style.left = c.x+'px'; el.style.top = c.y+'px';
+
+  let media = '';
+  if (c.type==='image' && c.img) {
+    media = c.url
+      ? `<a href="${c.url}" target="_blank" rel="noopener"><img src="${c.img}" alt=""></a>`
+      : `<img src="${c.img}" alt="">`;
+  }
+  else if (c.type==='embed' && ytId(c.url)) media = `<iframe class="embed" src="https://www.youtube.com/embed/${ytId(c.url)}" frameborder="0" allowfullscreen></iframe>`;
+
+  const linkHtml = (c.url && c.type!=='embed') ? `<a class="link" href="${c.url}" target="_blank" rel="noopener">${prettyDomain(c.url)}</a>` : '';
+  const tagsHtml = c.tags.map(t=>`<span class="ct">${t}</span>`).join('');
+  const reasonHtml = c.reason ? `<div class="reason"><span class="reason-mark">why</span>${c.reason}</div>` : '';
+  const paletteHtml = (c.palette && c.palette.length)
+    ? `<div class="palette">${c.palette.map(h=>`<span class="swatch" style="background:${h}" title="${h}"></span>`).join('')}</div>`
+    : '';
+
+  const copyBtnHtml = c.note ? `<button class="mini" data-act="copy" title="Copy text">⧉</button>` : '';
+
+  el.innerHTML = `
+    <div class="card-actions">
+      ${copyBtnHtml}
+      <button class="mini" data-act="edit" title="Edit">✎</button>
+      <button class="mini" data-act="del" title="Delete">✕</button>
+    </div>
+    ${media}
+    <div class="body">
+      <div class="ttl">${c.title}</div>
+      ${linkHtml}
+      ${paletteHtml}
+      ${c.note?`<div class="note">${c.note}</div>`:''}
+      ${reasonHtml}
+      <div class="meta">${tagsHtml}<span class="age">${savedDate(c)}</span></div>
+    </div>`;
+  c.el = el;
+  world.appendChild(el);
+  wireCard(c);
+  return el;
+}
+
+function renderAll(){
+  cards.forEach(c => { if(!c.el) buildCardEl(c); });
+  applyFilter();
+  drawLinks();
+}
+
+function matches(c){
+  const tagOk = activeTags.size===0 || c.tags.some(t=>activeTags.has(t));
+  const q = query.trim().toLowerCase();
+  const qOk = !q || (c.title+' '+c.note+' '+c.tags.join(' ')+' '+c.url).toLowerCase().includes(q);
+  return tagOk && qOk;
+}
+function applyFilter(){
+  cards.forEach(c=>{
+    const m = matches(c);
+    c.el.style.display = m ? '' : 'none';
+    c.hidden = !m;
+  });
+  drawLinks();
+}
+
+function renderTags(){
+  const counts = {};
+  cards.forEach(c=>c.tags.forEach(t=>counts[t]=(counts[t]||0)+1));
+  globalTags.forEach(t=>{ if(!(t in counts)) counts[t]=0; });
+  const tags = Object.keys(counts).sort((a,b)=>counts[b]-counts[a]);
+  tagrail.innerHTML = '';
+  const allChip = chip('All', cards.length, activeTags.size===0);
+  allChip.onclick = ()=>{ activeTags.clear(); renderTags(); applyFilter(); };
+  tagrail.appendChild(allChip);
+  tags.forEach(t=>{
+    const ch = chip(t, counts[t], activeTags.has(t));
+    ch.onclick = ()=>{ activeTags.has(t)?activeTags.delete(t):activeTags.add(t); renderTags(); applyFilter(); drawLinks(); };
+    tagrail.appendChild(ch);
+  });
+  // explicit clear-filter button, only when a filter is active
+  if(activeTags.size>0){
+    const clear = document.createElement('button');
+    clear.className = 'tag-chip clear-filter';
+    clear.innerHTML = `Clear filter ✕`;
+    clear.onclick = ()=>{ activeTags.clear(); renderTags(); applyFilter(); };
+    tagrail.appendChild(clear);
+  }
+  // manage tags (global delete), only when tags exist
+  if(tags.length>0){
+    const manage = document.createElement('button');
+    manage.className = 'tag-chip manage';
+    manage.innerHTML = `⚙ Manage tags`;
+    manage.onclick = openManageTags;
+    tagrail.appendChild(manage);
+  }
+}
+function chip(label,count,on){
+  const b = document.createElement('button');
+  b.className = 'tag-chip'+(on?' on':'');
+  b.innerHTML = `${label}<span class="cnt">${count}</span>`;
+  return b;
+}
+
+/* All distinct tags across the canvas (card tags + globally-created tags) */
+function allTags(){
+  const s = new Set(globalTags);
+  cards.forEach(c=>c.tags.forEach(t=>s.add(t)));
+  return [...s].sort();
+}
+
+/* ---------------- Manage tags (global add + delete) ---------------- */
+function deleteTagGlobally(tag){
+  const affected = cards.filter(c=>c.tags.includes(tag));
+  cards.forEach(c=>{ c.tags = c.tags.filter(t=>t!==tag); });
+  globalTags = globalTags.filter(t=>t!==tag);
+  activeTags.delete(tag);
+  cards.forEach(c=>{ if(c.el){ c.el.remove(); c.el=null; buildCardEl(c); } });
+  renderTags(); applyFilter(); if(netMode) drawLinks();
+  affected.forEach(markDirty); scheduleSave(); // scheduleSave covers globalTags meta
+}
+function addGlobalTag(name){
+  const t = name.trim().toLowerCase();
+  if(!t) return false;
+  if(allTags().includes(t)) return false; // already exists
+  globalTags.push(t);
+  renderTags();
+  scheduleSave(); // persists globalTags meta
+  return true;
+}
+function renderManageList(){
+  const counts = {};
+  cards.forEach(c=>c.tags.forEach(t=>counts[t]=(counts[t]||0)+1));
+  const tags = allTags(); // includes global (0-card) tags
+  const list = document.getElementById('mtagList');
+  if(tags.length===0){ list.innerHTML = `<p class="lede" style="margin-top:16px">No tags yet — add one above.</p>`; return; }
+  list.innerHTML = '';
+  tags.forEach(t=>{
+    const n = counts[t]||0;
+    const row = document.createElement('div'); row.className='mtag-row';
+    const label = n>0 ? `${n} card${n>1?'s':''}` : 'unused';
+    row.innerHTML = `<span class="name">${t}<span class="c">${label}</span></span>
+                     <button class="mtag-del">Delete</button>`;
+    row.querySelector('.mtag-del').onclick = ()=>{ deleteTagGlobally(t); renderManageList(); };
+    list.appendChild(row);
+  });
+}
+function openManageTags(){ renderManageList(); document.getElementById('manageBg').classList.add('open'); }
+
+/* Renders a selectable tag picker into `container`.
+   `selected` is a live array that gets mutated as tags toggle.
+   `onChange` fires after any change. */
+function renderTagPicker(container, selected, onChange){
+  container.innerHTML = '';
+  // union of all existing tags and any tags already selected (incl. just-created ones)
+  const existing = [...new Set([...allTags(), ...selected])].sort();
+  existing.forEach(t=>{
+    const b = document.createElement('button');
+    b.className = 'tp-tag'+(selected.includes(t)?' on':'');
+    b.textContent = t;
+    b.onclick = ()=>{
+      const i = selected.indexOf(t);
+      if(i>=0) selected.splice(i,1); else selected.push(t);
+      renderTagPicker(container, selected, onChange);
+      onChange && onChange();
+    };
+    container.appendChild(b);
+  });
+  // inline "add new tag" input
+  const inp = document.createElement('input');
+  inp.className = 'tp-new'; inp.placeholder = '+ new tag';
+  inp.onkeydown = e=>{
+    if(e.key==='Enter'){
+      const val = inp.value.trim().toLowerCase();
+      if(val && !selected.includes(val)) selected.push(val);
+      inp.value='';
+      renderTagPicker(container, selected, onChange);
+      onChange && onChange();
+    }
+  };
+  container.appendChild(inp);
+}
+
+/* ---------------- Connections (shared-tag network) ---------------- */
+function drawLinks(){
+  linksSvg.innerHTML = '';
+  if(!netMode) return;
+  for(let i=0;i<cards.length;i++){
+    for(let j=i+1;j<cards.length;j++){
+      const a=cards[i], b=cards[j];
+      if(a.hidden || b.hidden) continue;
+      const shared = a.tags.filter(t=>b.tags.includes(t));
+      if(shared.length===0) continue;
+      const hot = [...activeTags].some(t=>shared.includes(t));
+      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      const aw=a.el.offsetWidth/2, ah=a.el.offsetHeight/2, bw=b.el.offsetWidth/2, bh=b.el.offsetHeight/2;
+      line.setAttribute('x1', a.x+aw); line.setAttribute('y1', a.y+ah);
+      line.setAttribute('x2', b.x+bw); line.setAttribute('y2', b.y+bh);
+      if(hot) line.classList.add('hot');
+      linksSvg.appendChild(line);
+    }
+  }
+}
+
+/* ---------------- Pan / zoom ---------------- */
+function applyView(){
+  world.style.transform = `translate(${view.x}px,${view.y}px) scale(${view.k})`;
+  gridLayer.style.backgroundPosition = `${view.x}px ${view.y}px`;
+  gridLayer.style.backgroundSize = `${32*view.k}px ${32*view.k}px`;
+}
+let panning=false, panStart=null;
+viewport.addEventListener('mousedown', e=>{
+  if(e.target.closest('.card')) return;
+  panning=true; viewport.classList.add('panning');
+  panStart={x:e.clientX-view.x, y:e.clientY-view.y};
+});
+window.addEventListener('mousemove', e=>{
+  if(!panning) return;
+  view.x=e.clientX-panStart.x; view.y=e.clientY-panStart.y; applyView();
+});
+window.addEventListener('mouseup', ()=>{ panning=false; viewport.classList.remove('panning'); });
+viewport.addEventListener('wheel', e=>{
+  e.preventDefault();
+  const f = e.deltaY<0 ? 1.1 : 0.9;
+  const nk = Math.min(2.5, Math.max(0.3, view.k*f));
+  const r = nk/view.k;
+  view.x = e.clientX - (e.clientX-view.x)*r;
+  view.y = e.clientY - (e.clientY-view.y)*r;
+  view.k = nk; applyView();
+}, {passive:false});
+
+document.getElementById('zin').onclick = ()=>{ view.k=Math.min(2.5,view.k*1.2); applyView(); };
+document.getElementById('zout').onclick = ()=>{ view.k=Math.max(0.3,view.k*0.83); applyView(); };
+document.getElementById('zfit').onclick = ()=>{ view.x=120; view.y=60; view.k=1; applyView(); };
+
+/* ---------------- Auto-arrange (tag clustering) ---------------- */
+function autoArrange(){
+  if(cards.length===0) return;
+  // 1) score tags by how many cards carry them
+  const tagFreq = {};
+  cards.forEach(c=>c.tags.forEach(t=>tagFreq[t]=(tagFreq[t]||0)+1));
+  // 2) assign each card to a cluster key = its highest-frequency tag (ties→alphabetical); untagged→'· untagged'
+  const clusterOf = (c)=>{
+    if(!c.tags.length) return '· untagged';
+    return [...c.tags].sort((a,b)=> (tagFreq[b]-tagFreq[a]) || a.localeCompare(b))[0];
+  };
+  const clusters = {};
+  cards.forEach(c=>{ const k=clusterOf(c); (clusters[k]=clusters[k]||[]).push(c); });
+  // 3) order clusters: biggest first, untagged last
+  const keys = Object.keys(clusters).sort((a,b)=>{
+    if(a==='· untagged') return 1; if(b==='· untagged') return -1;
+    return clusters[b].length-clusters[a].length || a.localeCompare(b);
+  });
+  // 4) lay out: each cluster is a vertical column of cards; columns flow left→right, wrapping into rows of columns
+  const COL_W = 272;      // card width (252) + gutter
+  const CARD_GAP = 18;    // vertical gap between cards in a column
+  const CLUSTER_GAP = 40; // gap between clusters horizontally
+  const HEADER = 8;
+  const startX = 40, startY = 24;
+  const maxColsPerRow = Math.max(1, Math.ceil(Math.sqrt(keys.length)));
+  let colInRow = 0, rowTopY = startY, rowMaxBottom = startY, x = startX;
+
+  keys.forEach((k)=>{
+    const group = clusters[k];
+    let y = rowTopY + HEADER;
+    group.forEach(c=>{
+      c.x = x; c.y = y;
+      if(c.el){ c.el.style.left=c.x+'px'; c.el.style.top=c.y+'px'; }
+      // advance by this card's real rendered height
+      const h = c.el?.offsetHeight || 200;
+      y += h + CARD_GAP;
+    });
+    rowMaxBottom = Math.max(rowMaxBottom, y);
+    colInRow++;
+    x += COL_W + CLUSTER_GAP;
+    if(colInRow >= maxColsPerRow){
+      colInRow = 0; x = startX;
+      rowTopY = rowMaxBottom + 56;
+    }
+  });
+
+  if(netMode) drawLinks();
+  cards.forEach(markDirty); // positions changed
+  // gently animate the view to frame everything
+  fitToContent();
+}
+
+/* Smoothly fit the viewport around all cards */
+function fitToContent(){
+  if(cards.length===0) return;
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  cards.forEach(c=>{
+    const w=c.el?.offsetWidth||252, h=c.el?.offsetHeight||200;
+    minX=Math.min(minX,c.x); minY=Math.min(minY,c.y);
+    maxX=Math.max(maxX,c.x+w); maxY=Math.max(maxY,c.y+h);
+  });
+  const pad=80;
+  const cw=maxX-minX+pad*2, ch=maxY-minY+pad*2;
+  const vw=window.innerWidth, vh=window.innerHeight-120;
+  const k=Math.min(1, Math.min(vw/cw, vh/ch));
+  const tx=(vw-cw*k)/2 - (minX-pad)*k;
+  const ty=120 + (vh-ch*k)/2 - (minY-pad)*k;
+  animateView(tx,ty,k);
+}
+function animateView(tx,ty,tk){
+  const sx=view.x, sy=view.y, sk=view.k, t0=performance.now(), dur=420;
+  function step(now){
+    const p=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-p,3); // easeOutCubic
+    view.x=sx+(tx-sx)*e; view.y=sy+(ty-sy)*e; view.k=sk+(tk-sk)*e;
+    applyView();
+    if(p<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+document.getElementById('zarrange').onclick = autoArrange;
+
+/* ---------------- Card drag + actions ---------------- */
+function wireCard(c){
+  const el = c.el;
+  let dragging=false, off=null, moved=false;
+  el.addEventListener('mousedown', e=>{
+    if(e.target.closest('.mini')||e.target.closest('a')||e.target.closest('iframe')) return;
+    dragging=true; moved=false; el.classList.add('dragging');
+    off={x:e.clientX-c.x*view.k - view.x, y:e.clientY-c.y*view.k - view.y};
+    e.stopPropagation();
+  });
+  window.addEventListener('mousemove', e=>{
+    if(!dragging) return; moved=true;
+    c.x=(e.clientX-off.x-view.x)/view.k; c.y=(e.clientY-off.y-view.y)/view.k;
+    el.style.left=c.x+'px'; el.style.top=c.y+'px';
+    if(netMode) drawLinks();
+  });
+  window.addEventListener('mouseup', ()=>{
+    if(dragging){ dragging=false; el.classList.remove('dragging'); if(moved){ c.touchedAt=Date.now(); markDirty(c); } }
+  });
+  el.querySelector('[data-act="del"]').onclick = async ()=>{
+    cards=cards.filter(x=>x!==c); el.remove(); renderTags(); drawLinks();
+    if(c.imagePath) await store.deleteImage(c.imagePath);
+    await store.deleteCard(c.id);
+    scheduleSave();
+  };
+  el.querySelector('[data-act="edit"]').onclick = ()=> openModal(c);
+  const copyBtn = el.querySelector('[data-act="copy"]');
+  if(copyBtn){
+    copyBtn.onclick = async ()=>{
+      try {
+        await navigator.clipboard.writeText(c.note||'');
+        const prev = copyBtn.textContent; copyBtn.textContent='✓';
+        setTimeout(()=>{ copyBtn.textContent=prev; }, 1200);
+      } catch(err){
+        copyBtn.title = 'Copy failed';
+      }
+    };
+  }
+  // double-click an image card to open the lightbox
+  if(c.type==='image' && c.img){
+    el.addEventListener('dblclick', e=>{
+      if(e.target.closest('.mini')||e.target.closest('.card-tagpop')) return;
+      openLightbox(c);
+    });
+  }
+}
+
+/* Opens combined "why + tags" picker on a card (used right after paste) */
+function openCardTagPicker(c){
+  const old = c.el.querySelector('.card-tagpop');
+  if(old) old.remove();
+  c.el.classList.add('popover-open'); // let popover overflow the card
+  const pop = document.createElement('div');
+  pop.className = 'card-tagpop';
+  const linkFieldHtml = (c.type==='image')
+    ? `<div class="ttl-pop" style="margin-bottom:6px">Link <span style="text-transform:none;font-weight:500;opacity:.7">(optional)</span></div>
+       <input class="link-field" placeholder="https://where-you-found-it…" value="${c.url||''}"/>`
+    : '';
+  pop.innerHTML = `
+    <div class="pop-head">
+      <span class="ttl-pop">Why save this?</span>
+      <button class="pop-x" title="Close">✕</button>
+    </div>
+    <textarea class="why-field" placeholder="A quick note to future you…">${c.reason||''}</textarea>
+    ${linkFieldHtml}
+    <div class="ttl-pop" style="margin-bottom:6px">Tags</div>
+    <div class="tp-host"></div>
+    <button class="done">Done</button>`;
+  c.el.appendChild(pop);
+  pop.addEventListener('mousedown', e=>e.stopPropagation());
+  const why = pop.querySelector('.why-field');
+  why.addEventListener('input', ()=>{ c.reason = why.value; });
+  const linkField = pop.querySelector('.link-field');
+  if(linkField) linkField.addEventListener('input', ()=>{ c.url = linkField.value.trim(); });
+  const host = pop.querySelector('.tp-host');
+  renderTagPicker(host, c.tags, ()=>{ renderTags(); if(netMode) drawLinks(); });
+
+  const close = ()=>{
+    c.reason = why.value.trim();
+    if(linkField) c.url = linkField.value.trim();
+    pop.remove(); c.el.classList.remove('popover-open');
+    c.el.remove(); c.el=null; buildCardEl(c);
+    renderTags(); applyFilter();
+    markDirty(c);
+  };
+  pop.querySelector('.done').onclick = close;
+  pop.querySelector('.pop-x').onclick = close;
+  setTimeout(()=>why.focus(), 60);
+}
+
+/* ---------------- Paste & drop capture ---------------- */
+
+/* Run light/dark + palette analysis on an image card, then refresh it.
+   Preserves an open popover by re-rendering only if needed. */
+function analyzeAndRefresh(c){
+  analyzeImage(c.img).then(({mode, palette})=>{
+    if(mode){
+      c.mode = mode;
+      const modeTag = mode+'-mode';
+      if(!c.tags.includes(modeTag)) c.tags.push(modeTag);
+    }
+    if(palette) c.palette = palette;
+    // refresh card visuals without destroying an open popover
+    const pop = c.el?.querySelector('.card-tagpop');
+    if(pop){
+      // popover open: just refresh its tag picker so the new mode-tag shows
+      const host = pop.querySelector('.tp-host');
+      if(host) renderTagPicker(host, c.tags, ()=>{ renderTags(); if(netMode) drawLinks(); });
+    } else if(c.el){
+      c.el.remove(); c.el=null; buildCardEl(c);
+    }
+    renderTags(); applyFilter();
+    markDirty(c);
+  });
+}
+
+window.addEventListener('paste', e=>{
+  // ignore paste while typing in an input/textarea
+  if(e.target.matches('input, textarea')) return;
+  const items = e.clipboardData?.items||[];
+  for(const it of items){
+    if(it.type.startsWith('image/')){
+      const file = it.getAsFile();
+      const reader = new FileReader();
+      reader.onload = async ev=>{
+        const c = addCard({type:'image', title:'Pasted screenshot', img:ev.target.result, tags:[]});
+        await persistImage(c, ev.target.result);
+        buildCardEl(c); renderTags(); openCardTagPicker(c);
+        analyzeAndRefresh(c);
+        markDirty(c);
+      };
+      reader.readAsDataURL(file); return;
+    }
+  }
+  const text = e.clipboardData?.getData('text');
+  if(!text) return;
+  const trimmed = text.trim();
+  let c;
+  if(/^https?:\/\//.test(trimmed)){
+    const isYt = ytId(trimmed);
+    c = addCard({type:isYt?'embed':'link', title: isYt?'YouTube video…':prettyDomain(trimmed), url:trimmed, tags:[]});
+    buildCardEl(c); renderTags(); openCardTagPicker(c);
+    hydrateTitle(c);
+    markDirty(c);
+    return;
+  } else {
+    // plain text → note card
+    c = addCard({type:'note', title: trimmed.slice(0,40)+(trimmed.length>40?'…':''), note:trimmed, tags:[]});
+  }
+  buildCardEl(c); renderTags(); openCardTagPicker(c);
+  markDirty(c);
+});
+viewport.addEventListener('dragover', e=>e.preventDefault());
+viewport.addEventListener('drop', e=>{
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if(file && file.type.startsWith('image/')){
+    const reader = new FileReader();
+    reader.onload = async ev=>{
+      const c = addCard({type:'image', title:file.name, img:ev.target.result, tags:[],
+        x:(e.clientX-view.x)/view.k, y:(e.clientY-view.y)/view.k});
+      await persistImage(c, ev.target.result);
+      buildCardEl(c); renderTags(); openCardTagPicker(c);
+      analyzeAndRefresh(c);
+      markDirty(c);
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+/* Store an image card's bitmap as a Blob; replace the base64 with an object URL */
+async function persistImage(c, dataUrl){
+  if(!store.available) return; // keep base64 in memory if not connected
+  try {
+    const blob = b64ToBlob(dataUrl);
+    const res = await store.uploadImage(blob, c.id);
+    if(res){
+      c.img = res.url;       // public CDN URL
+      c.imagePath = res.path; // kept so we can delete the file later
+    }
+  } catch(e){ /* leave base64 in place on failure */ }
+}
+
+/* ---------------- Search ---------------- */
+document.getElementById('search').addEventListener('input', e=>{ query=e.target.value; applyFilter(); });
+
+/* ---------------- Connections toggle ---------------- */
+const netBtn = document.getElementById('netBtn');
+netBtn.onclick = ()=>{ netMode=!netMode; netBtn.classList.toggle('active', netMode); drawLinks(); };
+
+/* ---------------- Add / edit modal ---------------- */
+const modalBg = document.getElementById('modalBg');
+let editing=null, modalType='note', modalTags=[];
+document.getElementById('addBtn').onclick = ()=> openModal(null);
+document.getElementById('mCancel').onclick = ()=> modalBg.classList.remove('open');
+modalBg.onclick = e=>{ if(e.target===modalBg) modalBg.classList.remove('open'); };
+const manageBg = document.getElementById('manageBg');
+document.getElementById('manageClose').onclick = ()=> manageBg.classList.remove('open');
+manageBg.onclick = e=>{ if(e.target===manageBg) manageBg.classList.remove('open'); };
+const mtagNew = document.getElementById('mtagNew');
+const doAddTag = ()=>{ if(addGlobalTag(mtagNew.value)){ mtagNew.value=''; renderManageList(); } mtagNew.focus(); };
+document.getElementById('mtagAdd').onclick = doAddTag;
+mtagNew.addEventListener('keydown', e=>{ if(e.key==='Enter') doAddTag(); });
+
+document.querySelectorAll('#typeSeg button').forEach(b=>{
+  b.onclick = ()=>{
+    modalType=b.dataset.t;
+    document.querySelectorAll('#typeSeg button').forEach(x=>x.classList.toggle('on', x===b));
+    document.getElementById('fUrl').style.display = (modalType==='note')?'none':'block';
+  };
+});
+
+function openModal(c){
+  editing=c;
+  const isImage = c?.type==='image';
+  modalType = isImage ? 'image' : (c?.type||'note');
+  // type selector is irrelevant for image cards
+  document.getElementById('typeSeg').style.display = isImage ? 'none' : 'flex';
+  document.querySelectorAll('#typeSeg button').forEach(x=>x.classList.toggle('on', x.dataset.t===modalType));
+  // image cards have an optional link; notes don't show URL; link/embed do
+  document.getElementById('fUrl').style.display = (isImage || modalType!=='note') ? 'block' : 'none';
+  document.querySelector('#fUrl label').textContent = isImage ? 'Link (optional)' : 'URL (link or YouTube)';
+  document.getElementById('mTitle').value = c?.title||'';
+  document.getElementById('mUrl').value = c?.url||'';
+  document.getElementById('mNote').value = c?.note||'';
+  document.getElementById('mReason').value = c?.reason||'';
+  modalTags = [...(c?.tags||[])];
+  renderTagPicker(document.getElementById('mTagPicker'), modalTags, null);
+  modalBg.classList.add('open');
+  setTimeout(()=>document.getElementById('mTitle').focus(),50);
+}
+document.getElementById('mSave').onclick = ()=>{
+  const title=document.getElementById('mTitle').value||'Untitled';
+  const url=document.getElementById('mUrl').value.trim();
+  const note=document.getElementById('mNote').value;
+  const reason=document.getElementById('mReason').value.trim();
+  const tags=[...modalTags];
+  if(editing){
+    // image cards keep their type + image; the segmented control doesn't apply to them
+    const keepType = editing.type==='image' ? 'image' : modalType;
+    Object.assign(editing,{title,url,note,reason,tags,type:keepType,touchedAt:Date.now()});
+    editing.el.remove(); editing.el=null; buildCardEl(editing);
+    markDirty(editing);
+  } else {
+    const c=addCard({type:modalType,title,url,note,reason,tags}); buildCardEl(c);
+    if(url && (modalType==='link'||modalType==='embed') && (!title||title==='Untitled')) hydrateTitle(c);
+    markDirty(c);
+  }
+  modalBg.classList.remove('open'); renderTags(); applyFilter();
+};
+
+/* ---------------- Image lightbox ---------------- */
+const lightbox = document.getElementById('lightbox');
+const lbImg = document.getElementById('lbImg');
+let lbCurrent = null;
+function openLightbox(c){
+  lbCurrent = c;
+  lbImg.src = c.img;
+  document.getElementById('lbTitle').textContent = c.title || 'Image';
+  document.getElementById('lbCopy').textContent = '⧉ Copy';
+  document.getElementById('lbCopy').classList.remove('ok');
+  lightbox.classList.add('open');
+}
+function closeLightbox(){ lightbox.classList.remove('open'); lbCurrent=null; }
+document.getElementById('lbClose').onclick = closeLightbox;
+lightbox.addEventListener('click', e=>{ if(e.target===lightbox || e.target.id==='lbStage') closeLightbox(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && lightbox.classList.contains('open')) closeLightbox(); });
+
+/* Convert a data-URL to a Blob */
+function dataUrlToBlob(dataUrl){
+  const [head, b64] = dataUrl.split(',');
+  const mime = (head.match(/data:([^;]+)/)||[])[1] || 'image/png';
+  const bin = atob(b64); const len = bin.length; const arr = new Uint8Array(len);
+  for(let i=0;i<len;i++) arr[i]=bin.charCodeAt(i);
+  return new Blob([arr], {type:mime});
+}
+
+document.getElementById('lbDownload').onclick = ()=>{
+  if(!lbCurrent) return;
+  const a = document.createElement('a');
+  a.href = lbCurrent.img;
+  const safe = (lbCurrent.title||'image').replace(/[^\w.-]+/g,'_').slice(0,40);
+  const ext = ((lbCurrent.img.match(/data:image\/(\w+)/)||[])[1]||'png');
+  a.download = `${safe}.${ext}`;
+  document.body.appendChild(a); a.click(); a.remove();
+};
+
+document.getElementById('lbCopy').onclick = async ()=>{
+  if(!lbCurrent) return;
+  const btn = document.getElementById('lbCopy');
+  try {
+    const blob = dataUrlToBlob(lbCurrent.img);
+    // ClipboardItem image copy (PNG widely supported); fall back to copying nothing gracefully
+    await navigator.clipboard.write([ new ClipboardItem({ [blob.type]: blob }) ]);
+    btn.textContent = '✓ Copied'; btn.classList.add('ok');
+    setTimeout(()=>{ btn.textContent='⧉ Copy'; btn.classList.remove('ok'); }, 1600);
+  } catch(err) {
+    btn.textContent = 'Copy failed'; setTimeout(()=>{ btn.textContent='⧉ Copy'; }, 1600);
+  }
+};
+
+/* ---------------- Boot ---------------- */
+document.getElementById('authSignIn').onclick = ()=>doAuth('signin');
+document.getElementById('authSignUp').onclick = ()=>doAuth('signup');
+document.getElementById('authPass').addEventListener('keydown', e=>{ if(e.key==='Enter') doAuth('signin'); });
+document.getElementById('signOutBtn').onclick = signOut;
+initAuth();
+
+</script>
+</body>
+</html>
