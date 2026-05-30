@@ -501,8 +501,8 @@
    client code; Row-Level Security (set up in supabase-schema.sql)
    is what actually protects your data.
    ============================================================ */
-const SUPABASE_URL = 'https://foanseqiqxsxirelbqpt.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_J9OP0mobJL3_UqSaJ6tNOQ_RFS803dt';
+const SUPABASE_URL = 'https://YOUR-PROJECT.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'YOUR-PUBLISHABLE-KEY (sb_publishable_...)';
 
 const sb = (window.supabase && SUPABASE_URL.indexOf('YOUR-PROJECT')===-1)
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
@@ -941,10 +941,11 @@ function openManageTags(){ renderManageList(); document.getElementById('manageBg
 /* Renders a selectable tag picker into `container`.
    `selected` is a live array that gets mutated as tags toggle.
    `onChange` fires after any change. */
-function renderTagPicker(container, selected, onChange){
+function renderTagPicker(container, selected, onChange, card){
   container.innerHTML = '';
   // union of all existing tags and any tags already selected (incl. just-created ones)
   const existing = [...new Set([...allTags(), ...selected])].sort();
+  const persist = ()=>{ if(card) markDirty(card); };
   existing.forEach(t=>{
     const b = document.createElement('button');
     b.className = 'tp-tag'+(selected.includes(t)?' on':'');
@@ -952,8 +953,9 @@ function renderTagPicker(container, selected, onChange){
     b.onclick = ()=>{
       const i = selected.indexOf(t);
       if(i>=0) selected.splice(i,1); else selected.push(t);
-      renderTagPicker(container, selected, onChange);
+      renderTagPicker(container, selected, onChange, card);
       onChange && onChange();
+      persist();
     };
     container.appendChild(b);
   });
@@ -965,8 +967,9 @@ function renderTagPicker(container, selected, onChange){
       const val = inp.value.trim().toLowerCase();
       if(val && !selected.includes(val)) selected.push(val);
       inp.value='';
-      renderTagPicker(container, selected, onChange);
+      renderTagPicker(container, selected, onChange, card);
       onChange && onChange();
+      persist();
     }
   };
   container.appendChild(inp);
@@ -1180,7 +1183,7 @@ function openCardTagPicker(c){
   const linkField = pop.querySelector('.link-field');
   if(linkField) linkField.addEventListener('input', ()=>{ c.url = linkField.value.trim(); });
   const host = pop.querySelector('.tp-host');
-  renderTagPicker(host, c.tags, ()=>{ renderTags(); if(netMode) drawLinks(); });
+  renderTagPicker(host, c.tags, ()=>{ renderTags(); if(netMode) drawLinks(); }, c);
 
   const close = ()=>{
     c.reason = why.value.trim();
@@ -1212,7 +1215,7 @@ function analyzeAndRefresh(c){
     if(pop){
       // popover open: just refresh its tag picker so the new mode-tag shows
       const host = pop.querySelector('.tp-host');
-      if(host) renderTagPicker(host, c.tags, ()=>{ renderTags(); if(netMode) drawLinks(); });
+      if(host) renderTagPicker(host, c.tags, ()=>{ renderTags(); if(netMode) drawLinks(); }, c);
     } else if(c.el){
       c.el.remove(); c.el=null; buildCardEl(c);
     }
