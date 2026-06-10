@@ -4,6 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lumen — Design Research Canvas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300,0,0&display=block" rel="stylesheet">
+<style>
+  .ms {
+    font-family: 'Material Symbols Outlined';
+    font-weight: 300; font-style: normal;
+    font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    font-size: 18px; line-height: 1; display: inline-block; vertical-align: -4px;
+    -webkit-font-smoothing: antialiased; user-select: none;
+  }
+  .btn-icon .ms { font-size: 17px; vertical-align: -3.5px; }
+  .mini .ms, .pop-x .ms { font-size: 15px; vertical-align: 0; }
+  .lb-close .ms { font-size: 20px; vertical-align: 0; }
+  .zoom .ms { font-size: 20px; vertical-align: 0; }
+  .lb-btn .ms { font-size: 16px; }
+  .fab .ms { font-size: 28px; vertical-align: 0; }
+  .save-status .ms { font-size: 13px; vertical-align: -2.5px; }
+</style>
 <style>
   :root {
     /* Jeton — vibrant red accent on white */
@@ -378,6 +397,69 @@
   .lb-btn:hover { background: var(--color-jeton-red); color: #fff; }
   .lb-btn.ok { background: var(--color-mint-green); border-color: var(--color-mint-green); color: #fff; }
 
+  /* ---- Incomplete cards (no tags or no "why") ---- */
+  .card.incomplete { border: 1.5px dashed var(--color-ocean-blue); }
+  .card.incomplete:hover { border-color: var(--color-ocean-blue); box-shadow: rgba(71,126,233,0.18) 0px 8px 24px 0px; }
+
+  /* ---- Implementation status badge ---- */
+  .status-badge {
+    font-size: 10px; letter-spacing: 0.4px; text-transform: uppercase; font-weight: 500;
+    border-radius: var(--radius-pills); padding: 3px 9px; cursor: pointer;
+    border: 1px solid transparent; transition: all .15s; user-select: none;
+    font-family: var(--font-sequel); background: rgba(0,0,0,0.05); color: var(--color-red-velvet);
+  }
+  .status-badge.building { background: rgba(255,172,46,0.15); color: #b06d00; }
+  .status-badge.done { background: rgba(52,199,113,0.15); color: #1d8a4c; }
+  .status-badge:hover { border-color: currentColor; }
+
+  /* ---- Link card description ---- */
+  .card .descr { font-size: var(--text-caption); line-height: 1.4; color: var(--color-red-velvet); opacity: 0.65; margin-top: 5px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .card .ocr-flag { font-size: 9px; letter-spacing: 0.4px; text-transform: uppercase; color: var(--color-ocean-blue); opacity: 0.7; margin-top: 6px; }
+
+  /* ---- Suggested tags ---- */
+  .sg-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
+  .sg-tag {
+    font-size: var(--text-caption); font-weight: 450; font-family: var(--font-sequel);
+    color: var(--color-ocean-blue); background: rgba(71,126,233,0.08);
+    border: 1px dashed rgba(71,126,233,0.5); border-radius: var(--radius-pills);
+    padding: 5px 13px; cursor: pointer; transition: all .15s; white-space: nowrap;
+  }
+  .sg-tag:hover { background: rgba(71,126,233,0.16); }
+  .sg-tag::before { content: '+ '; }
+
+  /* ---- Mobile feed mode ---- */
+  .fab { display: none; }
+  body.mobile .topbar {
+    height: auto; flex-wrap: wrap; align-items: center;
+    padding: 10px 14px 12px; gap: 10px; row-gap: 10px;
+  }
+  body.mobile .brand { font-size: 19px; }
+  body.mobile .brand .sub { display: none; }
+  body.mobile .save-status { font-size: 10px; }
+  body.mobile .search-wrap { order: 10; flex: 1 1 100%; max-width: none; }
+  body.mobile .topbar .btn { padding: 7px 13px; }
+  body.mobile .tagrail { top: 103px; padding: 10px 14px; }
+  body.mobile .lightbox { padding: 16px; }
+  body.mobile .panel { top: 103px; width: 100%; }
+  body.mobile #viewport { position: fixed; inset: 0; overflow-y: auto; overflow-x: hidden; cursor: default; -webkit-overflow-scrolling: touch; }
+  body.mobile #world {
+    transform: none !important; position: static;
+    display: flex; flex-direction: column; gap: 16px;
+    padding: 168px 16px 110px; max-width: 560px; margin: 0 auto;
+  }
+  body.mobile #links, body.mobile .zoom, body.mobile .hint, body.mobile #netBtn, body.mobile .grid { display: none !important; }
+  body.mobile .card { position: static !important; width: 100%; cursor: default; }
+  body.mobile .card img { max-height: 320px; }
+  body.mobile .card-actions { opacity: 1; }
+  body.mobile #addBtn { display: none; }
+  body.mobile .fab {
+    display: grid; place-items: center; position: fixed; right: 20px; bottom: 24px; z-index: 70;
+    width: 56px; height: 56px; border-radius: 50%; border: none; cursor: pointer;
+    background: var(--color-jeton-red); color: #fff; font-size: 26px; line-height: 1;
+    box-shadow: var(--shadow-xl);
+  }
+  body.mobile .modal { max-height: 86vh; overflow-y: auto; }
+
   /* zoom controls */
   .zoom { position: fixed; left: 24px; bottom: 24px; z-index: 45; display: flex; flex-direction: column; gap: 6px; }
   .zoom button {
@@ -409,10 +491,10 @@
       <input class="search" id="search" placeholder="Search notes, titles, tags…" />
     </div>
     <div class="spacer"></div>
-    <span class="save-status ok" id="saveStatus">✓ Synced</span>
-    <button class="btn btn-icon" id="netBtn">◉ Connections</button>
-    <button class="btn btn-icon active" id="addBtn">＋ Add</button>
-    <button class="btn btn-icon" id="signOutBtn" title="Sign out" style="display:none">⇥</button>
+    <span class="save-status ok" id="saveStatus"><span class="ms">check</span> Synced</span>
+    <button class="btn btn-icon" id="netBtn"><span class="ms">hub</span> Connections</button>
+    <button class="btn btn-icon active" id="addBtn"><span class="ms">add</span> Add</button>
+    <button class="btn btn-icon" id="signOutBtn" title="Sign out" style="display:none"><span class="ms">logout</span></button>
   </header>
 
   <div class="auth-gate" id="authGate" style="display:none">
@@ -430,10 +512,10 @@
   <nav class="tagrail" id="tagrail"></nav>
 
   <div class="zoom">
-    <button id="zarrange" style="font-size:15px" title="Auto-arrange by tags">✦</button>
-    <button id="zin">＋</button>
-    <button id="zout">－</button>
-    <button id="zfit" style="font-size:12px">⤢</button>
+    <button id="zarrange" title="Auto-arrange by tags"><span class="ms">auto_awesome_mosaic</span></button>
+    <button id="zin" title="Zoom in"><span class="ms">add</span></button>
+    <button id="zout" title="Zoom out"><span class="ms">remove</span></button>
+    <button id="zfit" title="Reset view"><span class="ms">fit_screen</span></button>
   </div>
 
   <!-- Add modal -->
@@ -475,16 +557,18 @@
     </div>
   </div>
 
+  <button class="fab" id="fabAdd" title="Add"><span class="ms">add</span></button>
+
   <div class="lightbox" id="lightbox">
-    <button class="lb-close" id="lbClose" title="Close">✕</button>
+    <button class="lb-close" id="lbClose" title="Close"><span class="ms">close</span></button>
     <div class="lb-stage" id="lbStage">
       <img id="lbImg" alt=""/>
     </div>
     <div class="lb-bar">
       <span class="lb-title" id="lbTitle"></span>
       <div class="lb-actions">
-        <button class="lb-btn" id="lbCopy">⧉ Copy</button>
-        <button class="lb-btn" id="lbDownload">↓ Download</button>
+        <button class="lb-btn" id="lbCopy"><span class="ms">content_copy</span> Copy</button>
+        <button class="lb-btn" id="lbDownload"><span class="ms">download</span> Download</button>
       </div>
     </div>
   </div>
@@ -527,6 +611,8 @@ const store = (()=>{
       id:r.id, type:r.type, title:r.title, note:r.note||'', reason:r.reason||'',
       url:r.url||'', img:r.image_url||null, imagePath:r.image_path||null,
       mode:r.mode||null, palette:r.palette||null, tags:r.tags||[],
+      ocrText:r.ocr_text||'', description:r.description||'', ogImage:r.og_image||null,
+      status:r.status||'idea',
       x:r.x, y:r.y, createdAt:Number(r.created_at), touchedAt:Number(r.touched_at), el:null
     };
   }
@@ -535,6 +621,8 @@ const store = (()=>{
       id:c.id, user_id:currentUser?.id, type:c.type, title:c.title, note:c.note,
       reason:c.reason, url:c.url, image_url:c.img&&/^https?:/.test(c.img)?c.img:null,
       image_path:c.imagePath||null, mode:c.mode, palette:c.palette, tags:c.tags,
+      ocr_text:c.ocrText||null, description:c.description||null, og_image:c.ogImage||null,
+      status:c.status||'idea',
       x:c.x, y:c.y, created_at:c.createdAt, touched_at:c.touchedAt, updated_at:new Date().toISOString()
     };
   }
@@ -604,10 +692,10 @@ async function flushSave(){
 }
 function setSaveStatus(s){
   const el=document.getElementById('saveStatus'); if(!el) return;
-  if(!store.available){ el.textContent='⚠ Not connected'; el.className='save-status warn'; return; }
+  if(!store.available){ el.innerHTML='<span class="ms">cloud_off</span> Not connected'; el.className='save-status warn'; return; }
   if(s==='saving'){ el.textContent='Saving…'; el.className='save-status'; }
-  else if(s==='saved'){ el.textContent='✓ Synced'; el.className='save-status ok'; }
-  else { el.textContent='⚠ Sync failed'; el.className='save-status warn'; }
+  else if(s==='saved'){ el.innerHTML='<span class="ms">check</span> Synced'; el.className='save-status ok'; }
+  else { el.innerHTML='<span class="ms">sync_problem</span> Sync failed'; el.className='save-status warn'; }
 }
 
 /* ---------------- State ---------------- */
@@ -679,6 +767,8 @@ function addCard(data){
     note: data.note||'', reason: data.reason||'', url: data.url||'', img: data.img||null,
     imagePath: data.imagePath||null,
     mode: data.mode||null, palette: data.palette||null,
+    ocrText: data.ocrText||'', description: data.description||'', ogImage: data.ogImage||null,
+    status: data.status||'idea',
     tags: data.tags||[], x: data.x??(-view.x+200)/view.k, y: data.y??(-view.y+160)/view.k,
     createdAt: data.createdAt||Date.now(), touchedAt: data.touchedAt||Date.now(),
     el: null
@@ -746,30 +836,52 @@ function prettyDomain(url){
   } catch { return url; }
 }
 
-/* Fetch a real title. YouTube via oembed (CORS-friendly, no key);
-   general links try noembed, then fall back to prettyDomain. */
-async function fetchTitle(url){
+/* Fetch page metadata (SEO title, description, preview image).
+   YouTube via oembed; everything else via Microlink (free tier, CORS-friendly),
+   falling back to noembed, then prettyDomain. */
+async function fetchMeta(url){
+  const out = { title:null, description:null, image:null };
   try {
     if(ytId(url)){
       const r = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`);
-      if(r.ok){ const j = await r.json(); return j.title || null; }
-    } else {
-      const r = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(url)}`);
-      if(r.ok){ const j = await r.json(); if(j.title) return j.title; }
+      if(r.ok){ const j = await r.json(); out.title = j.title||null; out.image = j.thumbnail_url||null; return out; }
     }
-  } catch(e){ /* CORS or offline — fall through */ }
-  return null;
+    const r = await fetch(`https://api.microlink.io/?url=${encodeURIComponent(url)}`);
+    if(r.ok){
+      const j = await r.json();
+      if(j.status==='success' && j.data){
+        out.title = j.data.title||null;
+        out.description = j.data.description||null;
+        out.image = j.data.image?.url || j.data.logo?.url || null;
+        return out;
+      }
+    }
+  } catch(e){ /* fall through */ }
+  try {
+    const r = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(url)}`);
+    if(r.ok){ const j = await r.json(); if(j.title) out.title = j.title; }
+  } catch(e){ /* offline / CORS */ }
+  return out;
 }
 
-/* Update a card's title async, updating text in place (preserves open popover) */
+/* Update a card's metadata async, then refresh visuals.
+   Preserves an open popover (only swaps text in place while it's open). */
 function hydrateTitle(c){
-  fetchTitle(c.url).then(t=>{
-    if(t){
-      c.title = t;
-      const ttl = c.el?.querySelector('.ttl');
-      if(ttl) ttl.textContent = t;
-      markDirty(c);
+  fetchMeta(c.url).then(meta=>{
+    let changed = false;
+    if(meta.title && (c.title==='Untitled' || c.title===prettyDomain(c.url) || c.title==='YouTube video…' || !c.title)){ c.title = meta.title; changed = true; }
+    else if(meta.title && meta.title!==c.title && c.type!=='note'){ c.title = meta.title; changed = true; }
+    if(meta.description && !c.description){ c.description = meta.description; changed = true; }
+    if(meta.image && !c.ogImage && c.type==='link'){ c.ogImage = meta.image; changed = true; }
+    if(!changed) return;
+    const pop = c.el?.querySelector('.card-tagpop');
+    if(pop){
+      const ttl = c.el.querySelector('.ttl'); if(ttl) ttl.textContent = c.title;
+      refreshSuggestions(c);
+    } else if(c.el){
+      c.el.remove(); c.el = null; buildCardEl(c);
     }
+    markDirty(c);
   });
 }
 function ageLabel(c){
@@ -794,6 +906,7 @@ function savedDate(c){
 function buildCardEl(c){
   const el = document.createElement('div');
   el.className = 'card'; el.dataset.id = c.id;
+  if(!c.tags.length || !c.reason) el.classList.add('incomplete');
   el.style.left = c.x+'px'; el.style.top = c.y+'px';
 
   let media = '';
@@ -803,30 +916,37 @@ function buildCardEl(c){
       : `<img src="${c.img}" alt="">`;
   }
   else if (c.type==='embed' && ytId(c.url)) media = `<iframe class="embed" src="https://www.youtube.com/embed/${ytId(c.url)}" frameborder="0" allowfullscreen></iframe>`;
+  else if (c.type==='link' && c.ogImage) media = `<a href="${c.url}" target="_blank" rel="noopener"><img src="${c.ogImage}" alt="" loading="lazy" onerror="this.parentNode.remove()"></a>`;
 
   const linkHtml = (c.url && c.type!=='embed') ? `<a class="link" href="${c.url}" target="_blank" rel="noopener">${prettyDomain(c.url)}</a>` : '';
   const tagsHtml = c.tags.map(t=>`<span class="ct">${t}</span>`).join('');
   const reasonHtml = c.reason ? `<div class="reason"><span class="reason-mark">why</span>${c.reason}</div>` : '';
+  const descrHtml = (c.description && c.type!=='note') ? `<div class="descr">${c.description}</div>` : '';
+  const ocrHtml = c.ocrText ? `<div class="ocr-flag" title="${c.ocrText.slice(0,300).replace(/"/g,'&quot;')}"><span class="ms" style="font-size:12px;vertical-align:-2px">manage_search</span> text detected</div>` : '';
   const paletteHtml = (c.palette && c.palette.length)
     ? `<div class="palette">${c.palette.map(h=>`<span class="swatch" style="background:${h}" title="${h}"></span>`).join('')}</div>`
     : '';
+  const STATUS = {idea:'Idea', building:'Building', done:'Done'};
+  const statusHtml = `<button class="status-badge ${c.status||'idea'}" data-act="status" title="Click to change status">${STATUS[c.status]||'Idea'}</button>`;
 
-  const copyBtnHtml = c.note ? `<button class="mini" data-act="copy" title="Copy text">⧉</button>` : '';
+  const copyBtnHtml = c.note ? `<button class="mini" data-act="copy" title="Copy text"><span class="ms">content_copy</span></button>` : '';
 
   el.innerHTML = `
     <div class="card-actions">
       ${copyBtnHtml}
-      <button class="mini" data-act="edit" title="Edit">✎</button>
-      <button class="mini" data-act="del" title="Delete">✕</button>
+      <button class="mini" data-act="edit" title="Edit"><span class="ms">edit</span></button>
+      <button class="mini" data-act="del" title="Delete"><span class="ms">close</span></button>
     </div>
     ${media}
     <div class="body">
       <div class="ttl">${c.title}</div>
       ${linkHtml}
+      ${descrHtml}
       ${paletteHtml}
       ${c.note?`<div class="note">${c.note}</div>`:''}
+      ${ocrHtml}
       ${reasonHtml}
-      <div class="meta">${tagsHtml}<span class="age">${savedDate(c)}</span></div>
+      <div class="meta">${statusHtml}${tagsHtml}<span class="age">${savedDate(c)}</span></div>
     </div>`;
   c.el = el;
   world.appendChild(el);
@@ -838,12 +958,13 @@ function renderAll(){
   cards.forEach(c => { if(!c.el) buildCardEl(c); });
   applyFilter();
   drawLinks();
+  orderFeed();
 }
 
 function matches(c){
   const tagOk = activeTags.size===0 || c.tags.some(t=>activeTags.has(t));
   const q = query.trim().toLowerCase();
-  const qOk = !q || (c.title+' '+c.note+' '+c.tags.join(' ')+' '+c.url).toLowerCase().includes(q);
+  const qOk = !q || (c.title+' '+c.note+' '+c.tags.join(' ')+' '+c.url+' '+(c.ocrText||'')+' '+(c.description||'')+' '+(c.reason||'')).toLowerCase().includes(q);
   return tagOk && qOk;
 }
 function applyFilter(){
@@ -853,6 +974,7 @@ function applyFilter(){
     c.hidden = !m;
   });
   drawLinks();
+  orderFeed();
 }
 
 function renderTags(){
@@ -873,7 +995,7 @@ function renderTags(){
   if(activeTags.size>0){
     const clear = document.createElement('button');
     clear.className = 'tag-chip clear-filter';
-    clear.innerHTML = `Clear filter ✕`;
+    clear.innerHTML = `Clear filter <span class="ms" style="font-size:12px;vertical-align:-2px">close</span>`;
     clear.onclick = ()=>{ activeTags.clear(); renderTags(); applyFilter(); };
     tagrail.appendChild(clear);
   }
@@ -881,7 +1003,7 @@ function renderTags(){
   if(tags.length>0){
     const manage = document.createElement('button');
     manage.className = 'tag-chip manage';
-    manage.innerHTML = `⚙ Manage tags`;
+    manage.innerHTML = `<span class="ms" style="font-size:13px;vertical-align:-2.5px">settings</span> Manage tags`;
     manage.onclick = openManageTags;
     tagrail.appendChild(manage);
   }
@@ -941,10 +1063,12 @@ function openManageTags(){ renderManageList(); document.getElementById('manageBg
 /* Renders a selectable tag picker into `container`.
    `selected` is a live array that gets mutated as tags toggle.
    `onChange` fires after any change. */
-function renderTagPicker(container, selected, onChange, card){
+function renderTagPicker(container, selected, onChange, card, filter){
   container.innerHTML = '';
+  const f = (filter||'').trim().toLowerCase();
   // union of all existing tags and any tags already selected (incl. just-created ones)
-  const existing = [...new Set([...allTags(), ...selected])].sort();
+  let existing = [...new Set([...allTags(), ...selected])].sort();
+  if(f) existing = existing.filter(t=>t.includes(f) || selected.includes(t));
   const persist = ()=>{ if(card) markDirty(card); };
   existing.forEach(t=>{
     const b = document.createElement('button');
@@ -953,21 +1077,27 @@ function renderTagPicker(container, selected, onChange, card){
     b.onclick = ()=>{
       const i = selected.indexOf(t);
       if(i>=0) selected.splice(i,1); else selected.push(t);
-      renderTagPicker(container, selected, onChange, card);
+      renderTagPicker(container, selected, onChange, card, filter);
       onChange && onChange();
       persist();
     };
     container.appendChild(b);
   });
-  // inline "add new tag" input
+  // inline input: type to search tags, Enter to create/select
   const inp = document.createElement('input');
-  inp.className = 'tp-new'; inp.placeholder = '+ new tag';
+  inp.className = 'tp-new'; inp.placeholder = 'Search or add tag…';
+  inp.value = filter||'';
+  inp.oninput = ()=>{
+    const v = inp.value;
+    renderTagPicker(container, selected, onChange, card, v);
+    const ni = container.querySelector('.tp-new');
+    ni.focus(); ni.setSelectionRange(v.length, v.length);
+  };
   inp.onkeydown = e=>{
     if(e.key==='Enter'){
       const val = inp.value.trim().toLowerCase();
       if(val && !selected.includes(val)) selected.push(val);
-      inp.value='';
-      renderTagPicker(container, selected, onChange, card);
+      renderTagPicker(container, selected, onChange, card, '');
       onChange && onChange();
       persist();
     }
@@ -1004,6 +1134,7 @@ function applyView(){
 }
 let panning=false, panStart=null;
 viewport.addEventListener('mousedown', e=>{
+  if(document.body.classList.contains('mobile')) return;
   if(e.target.closest('.card')) return;
   panning=true; viewport.classList.add('panning');
   panStart={x:e.clientX-view.x, y:e.clientY-view.y};
@@ -1014,6 +1145,7 @@ window.addEventListener('mousemove', e=>{
 });
 window.addEventListener('mouseup', ()=>{ panning=false; viewport.classList.remove('panning'); });
 viewport.addEventListener('wheel', e=>{
+  if(document.body.classList.contains('mobile')) return;
   e.preventDefault();
   const f = e.deltaY<0 ? 1.1 : 0.9;
   const nk = Math.min(2.5, Math.max(0.3, view.k*f));
@@ -1113,7 +1245,8 @@ function wireCard(c){
   const el = c.el;
   let dragging=false, off=null, moved=false;
   el.addEventListener('mousedown', e=>{
-    if(e.target.closest('.mini')||e.target.closest('a')||e.target.closest('iframe')) return;
+    if(document.body.classList.contains('mobile')) return;
+    if(e.target.closest('.mini')||e.target.closest('a')||e.target.closest('iframe')||e.target.closest('.status-badge')) return;
     dragging=true; moved=false; el.classList.add('dragging');
     off={x:e.clientX-c.x*view.k - view.x, y:e.clientY-c.y*view.k - view.y};
     e.stopPropagation();
@@ -1134,13 +1267,26 @@ function wireCard(c){
     scheduleSave();
   };
   el.querySelector('[data-act="edit"]').onclick = ()=> openModal(c);
+  const statusBtn = el.querySelector('[data-act="status"]');
+  if(statusBtn){
+    statusBtn.onclick = e=>{
+      e.stopPropagation();
+      const order = ['idea','building','done'];
+      c.status = order[(order.indexOf(c.status||'idea')+1)%order.length];
+      const labels = {idea:'Idea', building:'Building', done:'Done'};
+      statusBtn.className = 'status-badge '+c.status;
+      statusBtn.textContent = labels[c.status];
+      c.touchedAt = Date.now();
+      markDirty(c);
+    };
+  }
   const copyBtn = el.querySelector('[data-act="copy"]');
   if(copyBtn){
     copyBtn.onclick = async ()=>{
       try {
         await navigator.clipboard.writeText(c.note||'');
-        const prev = copyBtn.textContent; copyBtn.textContent='✓';
-        setTimeout(()=>{ copyBtn.textContent=prev; }, 1200);
+        const prev = copyBtn.innerHTML; copyBtn.innerHTML='<span class="ms">check</span>';
+        setTimeout(()=>{ copyBtn.innerHTML=prev; }, 1200);
       } catch(err){
         copyBtn.title = 'Copy failed';
       }
@@ -1154,6 +1300,106 @@ function wireCard(c){
     });
   }
 }
+
+/* ---------------- OCR (text from screenshots) ---------------- */
+let tessLoading = null;
+function ensureTesseract(){
+  if(window.Tesseract) return Promise.resolve();
+  if(tessLoading) return tessLoading;
+  tessLoading = new Promise((res, rej)=>{
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+    s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+  return tessLoading;
+}
+async function runOCR(c){
+  if(!c.img) return;
+  try {
+    await ensureTesseract();
+    const { data } = await Tesseract.recognize(c.img, 'eng');
+    const text = (data.text||'').replace(/\s+/g,' ').trim();
+    if(text.length < 3) return;
+    c.ocrText = text.slice(0, 4000);
+    // refresh card (preserving an open popover) so the "text detected" flag + suggestions appear
+    const pop = c.el?.querySelector('.card-tagpop');
+    if(pop) refreshSuggestions(c);
+    else if(c.el){ c.el.remove(); c.el=null; buildCardEl(c); }
+    markDirty(c);
+  } catch(e){ /* OCR is best-effort */ }
+}
+
+/* ---------------- Tag suggestions / auto-categorization ---------------- */
+const DOMAIN_TAGS = {
+  'youtube':'video','youtu':'video','vimeo':'video',
+  'dribbble':'inspiration','behance':'inspiration','awwwards':'inspiration','mobbin':'inspiration',
+  'figma':'design','github':'code','gitlab':'code','codepen':'code','stackoverflow':'code',
+  'medium':'article','substack':'article','dev':'article',
+  'twitter':'thread','x':'thread','reddit':'discussion',
+  'notion':'docs','producthunt':'product','amazon':'shopping'
+};
+const KEYWORD_TAGS = [
+  [/\b(onboarding|signup|sign up|log in|login)\b/i,'onboarding'],
+  [/\b(pricing|plans?|subscription|billing)\b/i,'pricing'],
+  [/\b(dashboard|analytics|metrics|chart)\b/i,'dashboard'],
+  [/\b(landing page|hero|cta|call to action)\b/i,'landing'],
+  [/\b(typograph|font|typeface)\b/i,'typography'],
+  [/\b(animation|motion|transition)\b/i,'motion'],
+  [/\b(checkout|cart|payment)\b/i,'checkout'],
+  [/\b(navigation|navbar|menu|sidebar)\b/i,'navigation'],
+  [/\b(form|input|field|validation)\b/i,'forms'],
+  [/\b(empty state|error state|404)\b/i,'states'],
+  [/\b(api|sdk|endpoint)\b/i,'dev'],
+  [/\b(ai|gpt|llm|machine learning)\b/i,'ai'],
+];
+function suggestTags(c){
+  const corpus = [c.title, c.note, c.reason, c.description, c.ocrText, c.url].join(' ').toLowerCase();
+  const out = new Set();
+  // 1) existing tags whose name appears in the card's content
+  allTags().forEach(t=>{ if(t.length>2 && corpus.includes(t.toLowerCase())) out.add(t); });
+  // 2) domain-based category
+  if(c.url){
+    try {
+      const core = new URL(c.url).hostname.replace(/^www\./,'').split('.')[0];
+      if(DOMAIN_TAGS[core]) out.add(DOMAIN_TAGS[core]);
+    } catch{}
+  }
+  // 3) content keyword heuristics
+  KEYWORD_TAGS.forEach(([re, tag])=>{ if(re.test(corpus)) out.add(tag); });
+  // 4) type hints
+  if(c.type==='image') out.add('screenshot');
+  if(c.type==='embed') out.add('video');
+  return [...out].filter(t=>!c.tags.includes(t)).slice(0,6);
+}
+/* Re-render the "Suggested" chips inside an open popover */
+function refreshSuggestions(c){
+  const pop = c.el?.querySelector('.card-tagpop'); if(!pop) return;
+  const row = pop.querySelector('.sg-row'); if(!row) return;
+  renderSuggestRow(row, c, ()=>{
+    const host = pop.querySelector('.tp-host');
+    if(host) renderTagPicker(host, c.tags, ()=>{ renderTags(); if(netMode) drawLinks(); }, c);
+  });
+}
+function renderSuggestRow(row, c, after){
+  const sugg = suggestTags(c);
+  row.style.display = sugg.length ? '' : 'none';
+  const lbl = row.previousElementSibling;
+  if(lbl && lbl.classList.contains('ttl-pop')) lbl.style.display = sugg.length ? '' : 'none';
+  row.innerHTML = '';
+  sugg.forEach(t=>{
+    const b = document.createElement('button');
+    b.className = 'sg-tag'; b.textContent = t; b.type = 'button';
+    b.onclick = ()=>{
+      if(!c.tags.includes(t)) c.tags.push(t);
+      renderSuggestRow(row, c, after);
+      after && after();
+      renderTags(); markDirty(c);
+    };
+    row.appendChild(b);
+  });
+}
+
 
 /* Opens combined "why + tags" picker on a card (used right after paste) */
 function openCardTagPicker(c){
@@ -1169,10 +1415,12 @@ function openCardTagPicker(c){
   pop.innerHTML = `
     <div class="pop-head">
       <span class="ttl-pop">Why save this?</span>
-      <button class="pop-x" title="Close">✕</button>
+      <button class="pop-x" title="Close"><span class="ms">close</span></button>
     </div>
     <textarea class="why-field" placeholder="A quick note to future you…">${c.reason||''}</textarea>
     ${linkFieldHtml}
+    <div class="ttl-pop" style="margin-bottom:6px">Suggested</div>
+    <div class="sg-row"></div>
     <div class="ttl-pop" style="margin-bottom:6px">Tags</div>
     <div class="tp-host"></div>
     <button class="done">Done</button>`;
@@ -1184,6 +1432,9 @@ function openCardTagPicker(c){
   if(linkField) linkField.addEventListener('input', ()=>{ c.url = linkField.value.trim(); });
   const host = pop.querySelector('.tp-host');
   renderTagPicker(host, c.tags, ()=>{ renderTags(); if(netMode) drawLinks(); }, c);
+  renderSuggestRow(pop.querySelector('.sg-row'), c, ()=>{
+    renderTagPicker(host, c.tags, ()=>{ renderTags(); if(netMode) drawLinks(); }, c);
+  });
 
   const close = ()=>{
     c.reason = why.value.trim();
@@ -1203,6 +1454,7 @@ function openCardTagPicker(c){
 /* Run light/dark + palette analysis on an image card, then refresh it.
    Preserves an open popover by re-rendering only if needed. */
 function analyzeAndRefresh(c){
+  runOCR(c); // best-effort, async; refreshes the card when done
   analyzeImage(c.img).then(({mode, palette})=>{
     if(mode){
       c.mode = mode;
@@ -1216,6 +1468,7 @@ function analyzeAndRefresh(c){
       // popover open: just refresh its tag picker so the new mode-tag shows
       const host = pop.querySelector('.tp-host');
       if(host) renderTagPicker(host, c.tags, ()=>{ renderTags(); if(netMode) drawLinks(); }, c);
+      refreshSuggestions(c);
     } else if(c.el){
       c.el.remove(); c.el=null; buildCardEl(c);
     }
@@ -1367,7 +1620,7 @@ function openLightbox(c){
   lbCurrent = c;
   lbImg.src = c.img;
   document.getElementById('lbTitle').textContent = c.title || 'Image';
-  document.getElementById('lbCopy').textContent = '⧉ Copy';
+  document.getElementById('lbCopy').innerHTML = '<span class="ms">content_copy</span> Copy';
   document.getElementById('lbCopy').classList.remove('ok');
   lightbox.classList.add('open');
 }
@@ -1402,12 +1655,40 @@ document.getElementById('lbCopy').onclick = async ()=>{
     const blob = dataUrlToBlob(lbCurrent.img);
     // ClipboardItem image copy (PNG widely supported); fall back to copying nothing gracefully
     await navigator.clipboard.write([ new ClipboardItem({ [blob.type]: blob }) ]);
-    btn.textContent = '✓ Copied'; btn.classList.add('ok');
-    setTimeout(()=>{ btn.textContent='⧉ Copy'; btn.classList.remove('ok'); }, 1600);
+    btn.innerHTML = '<span class="ms">check</span> Copied'; btn.classList.add('ok');
+    setTimeout(()=>{ btn.innerHTML='<span class="ms">content_copy</span> Copy'; btn.classList.remove('ok'); }, 1600);
   } catch(err) {
-    btn.textContent = 'Copy failed'; setTimeout(()=>{ btn.textContent='⧉ Copy'; }, 1600);
+    btn.textContent = 'Copy failed'; setTimeout(()=>{ btn.innerHTML='<span class="ms">content_copy</span> Copy'; }, 1600);
   }
 };
+
+/* ---------------- Mobile feed mode ---------------- */
+function isMobileView(){ return window.matchMedia('(max-width: 720px)').matches || ('ontouchstart' in window && window.innerWidth < 900); }
+function orderFeed(){
+  if(!document.body.classList.contains('mobile')) return;
+  [...cards].sort((a,b)=>b.createdAt-a.createdAt).forEach(c=>{ if(c.el) world.appendChild(c.el); });
+}
+function syncMobile(){
+  const m = isMobileView();
+  const was = document.body.classList.contains('mobile');
+  document.body.classList.toggle('mobile', m);
+  // measure the wrapped topbar so the tag rail and feed never hide under it
+  const topbar = document.querySelector('.topbar');
+  const rail = document.querySelector('.tagrail');
+  if(m){
+    requestAnimationFrame(()=>{
+      const th = topbar.offsetHeight;
+      rail.style.top = th + 'px';
+      world.style.paddingTop = (th + rail.offsetHeight + 16) + 'px';
+    });
+  } else {
+    rail.style.top = ''; world.style.paddingTop = '';
+  }
+  if(m && !was) orderFeed();
+}
+window.addEventListener('resize', syncMobile);
+syncMobile();
+document.getElementById('fabAdd').onclick = ()=> openModal(null);
 
 /* ---------------- Boot ---------------- */
 document.getElementById('authSignIn').onclick = ()=>doAuth('signin');
