@@ -150,14 +150,26 @@
   .btn:hover { color: var(--color-snow); }
   .btn.on-mode { color: var(--color-indigo); }
   .btn.active {
-    corner-shape: squircle;
-    background: linear-gradient(110deg, #43e97b, #38f9d7 48%, #66a6ff);
-    background-size: 220% 100%; background-position: 0% 50%;
+    corner-shape: squircle; position: relative; overflow: hidden;
+    background:
+      radial-gradient(75% 130% at var(--p1x) var(--p1y), #43e97b 12%, transparent 60%),
+      radial-gradient(80% 140% at var(--p2x) var(--p2y), #66a6ff 10%, transparent 62%),
+      linear-gradient(110deg, #38f9d7, #66a6ff);
     color: #08090a; font-weight: var(--w-510);
     padding: 8px 18px; box-shadow: var(--shadow-stack); border-radius: var(--radius-buttons);
+    transition: box-shadow .3s ease;
   }
-  .btn.active:hover { color: #08090a; animation: cta-pan 2.4s ease-in-out infinite alternate; }
-  @keyframes cta-pan { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
+  .btn.active:hover {
+    color: #08090a;
+    animation: liquid-flow 2.6s ease-in-out infinite;
+    box-shadow: 0 4px 22px -4px rgba(56,249,215,0.55), var(--shadow-stack);
+  }
+  /* grain lives only in the gradient — CTA + FAB are the gradient surfaces now */
+  .btn.active::after, .fab::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    background-size: 120px 120px; opacity: 0.14; mix-blend-mode: overlay;
+  }
   .btn-icon { display: inline-flex; align-items: center; gap: 6px; }
   #signOutBtn { border: 1px solid var(--color-iron); border-radius: var(--radius-pills); padding: 6px 12px; color: var(--color-fog); }
   #signOutBtn:hover { border-color: var(--color-snow); color: var(--color-snow); }
@@ -377,19 +389,19 @@
   .seg button.on { background: var(--color-obsidian); color: var(--color-snow); border-color: var(--color-platinum); }
 
   /* ---- Tag picker ---- */
-  .tagpicker { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .tagpicker { display: flex; flex-wrap: wrap; gap: 10px 9px; align-items: center; }
   .tp-tag {
     font-size: var(--text-caption); font-weight: var(--w-reg); font-family: var(--font-inter);
     color: var(--color-fog); background: transparent;
     border: 1px solid var(--color-graphite); border-radius: var(--radius-badges);
-    padding: 3px 10px; cursor: pointer; transition: all .15s; white-space: nowrap;
+    padding: 5px 13px; cursor: pointer; transition: all .15s; white-space: nowrap;
   }
   .tp-tag:hover { color: var(--color-snow); border-color: var(--color-iron); }
   .tp-tag.on { color: var(--color-snow); background: var(--color-obsidian); border-color: var(--color-platinum); }
   .tp-new {
     font-size: var(--text-caption); background: var(--color-steel);
     border: 1px dashed var(--color-iron); border-radius: var(--radius-badges);
-    color: var(--color-snow); padding: 3px 10px; width: 130px; outline: none; font-family: var(--font-inter);
+    color: var(--color-snow); padding: 5px 13px; width: 140px; outline: none; font-family: var(--font-inter);
   }
   .tp-new::placeholder { color: var(--color-slate); }
   .tp-new:focus { border-color: var(--color-indigo); border-style: solid; }
@@ -427,7 +439,7 @@
   .card-tagpop .done:hover { border-color: var(--color-platinum); }
 
   /* ---- Suggested tags — indigo accents ---- */
-  .sg-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
+  .sg-row { display: flex; flex-wrap: wrap; gap: 9px 8px; margin: 4px 0 12px; }
   .sg-tag {
     font-size: var(--text-caption); font-weight: var(--w-reg); font-family: var(--font-inter);
     color: #98a1e8; background: var(--indigo-tint);
@@ -525,10 +537,14 @@
   body.flat .fab {
     display: grid; place-items: center; position: fixed; right: 20px; bottom: 24px; z-index: 70;
     width: 54px; height: 54px; border-radius: 50%; corner-shape: superellipse(2.4); border: none; cursor: pointer;
-    background: linear-gradient(120deg, #43e97b, #38f9d7 48%, #66a6ff);
-    background-size: 240% 100%; color: #08090a; line-height: 1;
+    position: relative; overflow: hidden;
+    background:
+      radial-gradient(75% 130% at var(--p1x) var(--p1y), #43e97b 12%, transparent 60%),
+      radial-gradient(80% 140% at var(--p2x) var(--p2y), #66a6ff 10%, transparent 62%),
+      linear-gradient(120deg, #38f9d7, #66a6ff);
+    color: #08090a; line-height: 1;
     box-shadow: var(--shadow-stack), var(--shadow-xl);
-    animation: cta-pan 6s ease-in-out infinite alternate;
+    animation: liquid-flow 5s ease-in-out infinite;
   }
   body.flat .modal { max-height: 86vh; overflow-y: auto; }
 
@@ -564,7 +580,7 @@
   body.grid.narrow .card { margin-bottom: 14px; }
   body.grid .card img { max-height: 260px; }
   /* the gradient hover spin still works on grid with a fine pointer */
-  body.grid.has-hover .card.has-grad:hover { animation: grad-rotate 3s linear infinite, liquid-flow 6s ease-in-out infinite; }
+  body.grid.has-hover .card.has-grad:hover { animation: grad-rotate 3s linear infinite; }
 
   /* zoom controls */
   .zoom { position: fixed; left: 24px; bottom: 24px; z-index: 45; display: flex; flex-direction: column; gap: 6px; }
@@ -576,78 +592,48 @@
   }
   .zoom button:hover { color: var(--color-snow); border-color: var(--color-iron); }
 
-  /* ============ Tag gradients — "How We Feel" liquid layer ============ */
+  /* ============ Tag gradients — neon border layer ============
+     Card body stays charcoal; the primary tag's duotone lives in the
+     border stroke + an ambient glow. The stroke flows (conic spin) and
+     the glow blooms on hover. */
   @property --ga  { syntax: '<angle>'; initial-value: 135deg; inherits: false; }
-  @property --p1x { syntax: '<percentage>'; initial-value: 18%; inherits: false; }
-  @property --p1y { syntax: '<percentage>'; initial-value: 12%; inherits: false; }
+  @property --p1x { syntax: '<percentage>'; initial-value: 15%; inherits: false; }
+  @property --p1y { syntax: '<percentage>'; initial-value: 20%; inherits: false; }
   @property --p2x { syntax: '<percentage>'; initial-value: 85%; inherits: false; }
-  @property --p2y { syntax: '<percentage>'; initial-value: 88%; inherits: false; }
-  @property --p3x { syntax: '<percentage>'; initial-value: 62%; inherits: false; }
-  @property --p3y { syntax: '<percentage>'; initial-value: 32%; inherits: false; }
+  @property --p2y { syntax: '<percentage>'; initial-value: 80%; inherits: false; }
 
-  /* Bold liquid color field owned by the primary tag's duotone.
-     Three drifting radial pools over a base linear blend; conic gradient ring
-     on the border. Static at rest — pools flow + glow blooms on hover. */
   .card.has-grad {
-    border: 1.5px solid transparent; border-radius: var(--radius-cards); corner-shape: squircle;
+    border: 2px solid transparent; border-radius: var(--radius-cards); corner-shape: squircle;
     background:
-      radial-gradient(130% 100% at var(--p1x) var(--p1y), color-mix(in srgb, var(--g1) 88%, #ffffff) 0%, transparent 60%) padding-box,
-      radial-gradient(120% 110% at var(--p2x) var(--p2y), var(--g2) 0%, transparent 62%) padding-box,
-      radial-gradient(95% 95% at var(--p3x) var(--p3y), color-mix(in srgb, var(--g1) 45%, var(--g2)) 0%, transparent 70%) padding-box,
-      linear-gradient(135deg, var(--g1), var(--g2)) padding-box,
+      linear-gradient(var(--color-charcoal), var(--color-charcoal)) padding-box,
       conic-gradient(from var(--ga), var(--g1), var(--g2), var(--g1)) border-box;
-    box-shadow: var(--shadow-sm);
+    /* faint ambient glow at rest so the colored edge reads on the onyx canvas */
+    box-shadow:
+      0 0 22px -6px color-mix(in srgb, var(--g1) 30%, transparent),
+      0 0 8px -2px color-mix(in srgb, var(--g2) 22%, transparent),
+      var(--shadow-sm);
     transition: box-shadow .35s ease;
   }
   .card.has-grad:hover {
-    animation: grad-rotate 3s linear infinite, liquid-flow 6s ease-in-out infinite;
+    animation: grad-rotate 3s linear infinite;
     box-shadow:
-      0 10px 44px -6px color-mix(in srgb, var(--g1) 52%, transparent),
-      0 4px 18px -2px color-mix(in srgb, var(--g2) 46%, transparent),
+      0 0 44px -4px color-mix(in srgb, var(--g1) 55%, transparent),
+      0 0 16px -2px color-mix(in srgb, var(--g2) 48%, transparent),
       var(--shadow-sm);
   }
   .card.has-grad.dragging {
-    animation: grad-rotate 3s linear infinite, liquid-flow 6s ease-in-out infinite;
-    box-shadow: 0 10px 44px -6px color-mix(in srgb, var(--g1) 52%, transparent), var(--shadow-xl);
+    animation: grad-rotate 3s linear infinite;
+    box-shadow: 0 0 44px -4px color-mix(in srgb, var(--g1) 55%, transparent), var(--shadow-xl);
   }
   .card.has-grad.resurfaced { box-shadow: 0 0 0 3px var(--indigo-tint-2), var(--shadow-xl); }
   @keyframes grad-rotate { to { --ga: 495deg; } }
   @keyframes liquid-flow {
-    0%   { --p1x:18%; --p1y:12%; --p2x:85%; --p2y:88%; --p3x:62%; --p3y:32%; }
-    33%  { --p1x:72%; --p1y:28%; --p2x:24%; --p2y:68%; --p3x:80%; --p3y:78%; }
-    66%  { --p1x:38%; --p1y:82%; --p2x:76%; --p2y:18%; --p3x:14%; --p3y:48%; }
-    100% { --p1x:18%; --p1y:12%; --p2x:85%; --p2y:88%; --p3x:62%; --p3y:32%; }
+    0%   { --p1x:15%; --p1y:20%; --p2x:85%; --p2y:80%; }
+    33%  { --p1x:75%; --p1y:30%; --p2x:20%; --p2y:65%; }
+    66%  { --p1x:35%; --p1y:80%; --p2x:80%; --p2y:15%; }
+    100% { --p1x:15%; --p1y:20%; --p2x:85%; --p2y:80%; }
   }
   body.flat .card.has-grad { animation: none; }
-
-  /* Grain — lives only inside the gradient field */
-  .card.has-grad::before {
-    content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
-    border-radius: inherit;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-    background-size: 160px 160px;
-    opacity: 0.16; mix-blend-mode: overlay;
-  }
-  .card.has-grad > :not(.card-actions):not(.card-tagpop) { position: relative; z-index: 1; }
-  .card.has-grad .card-actions { z-index: 2; }
-
-  /* Dark text scheme on the vivid field (HWF style) */
-  .card.has-grad .ttl { color: #08090a; }
-  .card.has-grad .note { color: rgba(8,9,10,0.78); }
-  .card.has-grad .descr { color: rgba(8,9,10,0.72); }
-  .card.has-grad .link { color: #08090a; font-weight: var(--w-510); text-decoration: underline; text-decoration-color: rgba(8,9,10,0.4); }
-  .card.has-grad .link:hover { color: #08090a; text-decoration-color: rgba(8,9,10,0.8); }
-  .card.has-grad .age { color: rgba(8,9,10,0.62); }
-  .card.has-grad .ocr-flag { color: rgba(8,9,10,0.66); }
-  .card.has-grad .reason { background: rgba(8,9,10,0.32); color: rgba(255,255,255,0.93); box-shadow: none; }
-  .card.has-grad .reason-mark { color: rgba(255,255,255,0.72); }
-  .card.has-grad .ct { background: rgba(8,9,10,0.32); border-color: transparent; color: rgba(255,255,255,0.93); }
-  .card.has-grad .ct.primary { border-color: rgba(255,255,255,0.38); }
-  .card.has-grad .status-badge { background: rgba(8,9,10,0.32); border-color: transparent; color: rgba(255,255,255,0.93); }
-  .card.has-grad .status-badge:hover { border-color: rgba(255,255,255,0.4); }
-  .card.has-grad .ct.needs { background: rgba(8,9,10,0.4); border-color: rgba(255,255,255,0.45); color: #ffd4d4; }
-  .card.has-grad .ct.needs::before { background: #ffb4b4; }
-  .card.has-grad .palette .swatch { box-shadow: rgba(8,9,10,0.35) 0px 0px 0px 1px inset; }
 
   /* Gradient identity dot — shared by rail chips, card badges, picker chips */
   .gdot {
