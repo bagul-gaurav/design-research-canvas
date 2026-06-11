@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Lumen — Design Research Canvas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -495,7 +495,7 @@
     box-shadow: var(--shadow-inset-border), var(--shadow-xl); background: var(--color-obsidian);
   }
   .lb-close {
-    position: absolute; top: 24px; right: 24px; width: 40px; height: 40px; border-radius: var(--radius-mini);
+    position: absolute; top: calc(24px + env(safe-area-inset-top, 0px)); right: calc(24px + env(safe-area-inset-right, 0px)); width: 40px; height: 40px; border-radius: var(--radius-mini);
     background: var(--color-charcoal); border: 1px solid var(--color-graphite);
     color: var(--color-fog); cursor: pointer; display: grid; place-items: center;
     transition: all .15s; z-index: 2;
@@ -535,9 +535,12 @@
   body.flat .status-badge { padding: 4px 11px 4px 9px; }
   body.flat #addBtn { display: none; }
   body.flat .fab {
-    display: grid; place-items: center; position: fixed; right: 20px; bottom: 24px; z-index: 70;
-    width: 54px; height: 54px; border-radius: 50%; corner-shape: superellipse(2.4); border: none; cursor: pointer;
-    position: relative; overflow: hidden;
+    display: grid; place-items: center; position: fixed; z-index: 70;
+    /* respect iOS home indicator / gesture bar */
+    right: calc(20px + env(safe-area-inset-right, 0px));
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    width: 56px; height: 56px; border-radius: 50%; corner-shape: superellipse(2.4); border: none; cursor: pointer;
+    overflow: hidden;
     background:
       radial-gradient(75% 130% at var(--p1x) var(--p1y), #43e97b 12%, transparent 60%),
       radial-gradient(80% 140% at var(--p2x) var(--p2y), #66a6ff 10%, transparent 62%),
@@ -549,7 +552,10 @@
   body.flat .modal { max-height: 86vh; overflow-y: auto; }
 
   /* --- Compact topbar when stacked (narrow widths only) --- */
-  body.flat.narrow .topbar { height: auto; flex-wrap: wrap; align-items: center; padding: 10px 14px 12px; gap: 10px; row-gap: 10px; }
+  body.flat.narrow .topbar {
+    height: auto; flex-wrap: wrap; align-items: center; gap: 10px; row-gap: 10px;
+    padding: calc(10px + env(safe-area-inset-top, 0px)) calc(14px + env(safe-area-inset-right, 0px)) 12px calc(14px + env(safe-area-inset-left, 0px));
+  }
   body.flat.narrow .brand { font-size: 15px; }
   body.flat.narrow .brand .sub { display: none; }
   body.flat.narrow .save-status { font-size: 10px; }
@@ -558,11 +564,11 @@
   body.flat.narrow .topbar .btn { padding: 6px 10px; }
   body.flat.narrow .tagrail { top: 103px; padding: 10px 14px; }
   body.flat.narrow .panel { top: 103px; width: 100%; }
-  body.flat.narrow .lightbox { padding: 16px; }
+  body.flat.narrow .lightbox { padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px)); }
   body.flat.narrow .empty-state { padding-top: 140px; align-items: start; }
 
   /* --- FEED: single column --- */
-  body.feed #world { display: flex; flex-direction: column; gap: 14px; padding: 168px 16px 110px; max-width: 560px; margin: 0 auto; }
+  body.feed #world { display: flex; flex-direction: column; gap: 14px; padding: 168px 16px calc(120px + env(safe-area-inset-bottom, 0px)); max-width: 560px; margin: 0 auto; }
   body.feed:not(.narrow) #world { padding-top: 124px; }
   body.feed .card { width: 100% !important; }
   body.feed .card img { max-height: 320px; }
