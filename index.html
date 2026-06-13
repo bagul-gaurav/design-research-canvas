@@ -247,6 +247,8 @@
   .card:hover { box-shadow: rgb(50,51,52) 0px 0px 0px 1px inset, rgba(0,0,0,0.5) 0px 8px 24px -4px; transform: translateY(-2px); }
   .card.dragging { cursor: grabbing; z-index: 999 !important; box-shadow: rgb(50,51,52) 0px 0px 0px 1px inset, var(--shadow-xl); }
   .card.filtered-out { opacity: 0.12; filter: blur(1.5px); transform: scale(0.97); pointer-events: none; }
+  /* In grid/feed, collapse filtered cards out of flow instead of leaving faded ghosts */
+  body.flat .card.filtered-out { display: none; }
   .card.resurfaced { box-shadow: var(--color-indigo) 0px 0px 0px 1px inset, var(--shadow-xl); }
   .card.popover-open { overflow: visible; z-index: 1001; }
 
@@ -726,7 +728,8 @@
     .card, .card.has-grad, .card.has-grad:hover, .btn.active, .btn.active:hover, .fab, .hint { animation: none !important; }
     .card, .tag-chip, .tp-tag, .sg-tag, .mini, .btn, .fab, .panel, .modal, .modal-bg { transition: none !important; }
     .drop-ring { display: none; }
-    .card.filtered-out { transition: none !important; }
+    /* no animated recede — just remove filtered cards, blur/scale would persist statically */
+    .card.filtered-out { transition: none !important; display: none; }
   }
 </style>
 
