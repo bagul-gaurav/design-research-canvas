@@ -900,7 +900,8 @@ const store = (()=>{
       return (data||[]).map(rowToCard);
     },
     async saveCard(c){
-      if(!available||!currentUser) return;
+      if(!available) return;
+      if(!currentUser) throw new Error('not-authenticated');
       const { error } = await sb.from('cards').upsert(cardToRow(c));
       if(error) throw error;
     },
@@ -928,7 +929,8 @@ const store = (()=>{
       return data ? data.value : dflt;
     },
     async setMeta(k, v){
-      if(!available||!currentUser) return;
+      if(!available) return;
+      if(!currentUser) throw new Error('not-authenticated');
       await sb.from('user_meta').upsert({ user_id:currentUser.id, key:k, value:v });
     },
   };
@@ -952,7 +954,7 @@ async function flushSave(){
     for(const c of batch){ await store.saveCard(c); }
     await store.setMeta('globalTags', globalTags);
     await store.setMeta('tagStyles', tagStyles);
-    setSaveStatus('saved');
+    if(savePending.size===0) setSaveStatus('saved');
   } catch(e){ setSaveStatus('error'); }
 }
 function setSaveStatus(s){
@@ -1019,10 +1021,13 @@ let activeTags = new Set();
 let query = '';
 let netMode = false;
 let activeStatuses = new Set();   // status filter: empty = all
+let dragState = null; // { c, off, moved } — single global card-drag state
 let globalTags = []; // tags created but not yet on any card
 const view = { x: 120, y: 60, k: 1 };
 const DAY = 86400000;
 const newId = ()=> (crypto.randomUUID ? crypto.randomUUID() : 'c_'+Date.now()+'_'+Math.random().toString(36).slice(2));
+function escHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function safeUrl(u){ if(!u) return ''; try{ const p=new URL(u).protocol; if(p!=='https:'&&p!=='http:') return '#'; }catch{ return '#'; } return u; }
 
 /* ---------------- DOM refs ---------------- */
 const world = document.getElementById('world');
@@ -1041,7 +1046,11 @@ async function initAuth(){
     ]);
     if(sess?.data?.session){ currentUser = sess.data.session.user; showApp(); loadData(); }
     else showAuth();
-    sb.auth.onAuthStateChange((_e, session)=>{ currentUser = session?.user || null; });
+    sb.auth.onAuthStateChange((_e, session)=>{
+      const had = currentUser;
+      currentUser = session?.user || null;
+      if(had && !currentUser) showAuth();
+    });
   } catch(err){
     showAuth();
     const msg = document.getElementById('authMsg');
@@ -1238,21 +1247,21 @@ function buildCardEl(c){
   let media = '';
   if (c.type==='image' && c.img) {
     media = c.url
-      ? `<a href="${c.url}" target="_blank" rel="noopener"><img src="${c.img}" alt=""></a>`
+      ? `<a href="${safeUrl(c.url)}" target="_blank" rel="noopener"><img src="${c.img}" alt=""></a>`
       : `<img src="${c.img}" alt="">`;
   }
   else if (c.type==='embed' && ytId(c.url)) media = `<iframe class="embed" src="https://www.youtube.com/embed/${ytId(c.url)}" frameborder="0" allowfullscreen></iframe>`;
-  else if (c.type==='link' && c.ogImage) media = `<a href="${c.url}" target="_blank" rel="noopener"><img src="${c.ogImage}" alt="" loading="lazy" onerror="this.parentNode.remove()"></a>`;
+  else if (c.type==='link' && c.ogImage) media = `<a href="${safeUrl(c.url)}" target="_blank" rel="noopener"><img src="${escHtml(c.ogImage)}" alt="" loading="lazy" onerror="this.parentNode.remove()"></a>`;
 
-  const linkHtml = (c.url && c.type!=='embed') ? `<a class="link" href="${c.url}" target="_blank" rel="noopener">${prettyDomain(c.url)}</a>` : '';
+  const linkHtml = (c.url && c.type!=='embed') ? `<a class="link" href="${safeUrl(c.url)}" target="_blank" rel="noopener">${prettyDomain(c.url)}</a>` : '';
   const tagsHtml = c.tags.map((t,i)=>{
     const st = ensureTagStyle(t);
     const cls = 'ct'+(i===0&&c.tags.length>1?' primary':'');
     const tip = i===0 ? 'Primary tag — owns the border' : 'Click to make primary';
-    return `<span class="${cls}" data-tag="${t}" title="${tip}" style="--g1:${st.g1};--g2:${st.g2}"><span class="gdot"></span>${t}</span>`;
+    return `<span class="${cls}" data-tag="${escHtml(t)}" title="${tip}" style="--g1:${st.g1};--g2:${st.g2}"><span class="gdot"></span>${escHtml(t)}</span>`;
   }).join('');
-  const reasonHtml = c.reason ? `<div class="reason"><span class="reason-mark">why</span>${c.reason}</div>` : '';
-  const descrHtml = (c.description && c.type!=='note') ? `<div class="descr">${c.description}</div>` : '';
+  const reasonHtml = c.reason ? `<div class="reason"><span class="reason-mark">why</span>${escHtml(c.reason)}</div>` : '';
+  const descrHtml = (c.description && c.type!=='note') ? `<div class="descr">${escHtml(c.description)}</div>` : '';
   const ocrHtml = c.ocrText ? `<div class="ocr-flag" title="${c.ocrText.slice(0,300).replace(/"/g,'&quot;')}"><span class="ms" style="font-size:12px;vertical-align:-2px">manage_search</span> text detected</div>` : '';
   const paletteHtml = (c.palette && c.palette.length)
     ? `<div class="palette">${c.palette.map(h=>`<span class="swatch" style="background:${h}" title="${h}"></span>`).join('')}</div>`
@@ -1271,11 +1280,11 @@ function buildCardEl(c){
     </div>
     ${media}
     <div class="body">
-      <div class="ttl">${c.title}</div>
+      <div class="ttl">${escHtml(c.title)}</div>
       ${linkHtml}
       ${descrHtml}
       ${paletteHtml}
-      ${c.note?`<div class="note">${c.note}</div>`:''}
+      ${c.note?`<div class="note">${escHtml(c.note)}</div>`:''}
       ${ocrHtml}
       ${reasonHtml}
       <div class="meta">${statusHtml}${tagsHtml}${needsHtml}<span class="age">${savedDate(c)}</span></div>
@@ -1305,8 +1314,9 @@ function applyFilter(){
   let visible = 0;
   cards.forEach(c=>{
     const m = matches(c);
-    c.el.classList.toggle('filtered-out', !m);
     c.hidden = !m;
+    if(!c.el) return;
+    c.el.classList.toggle('filtered-out', !m);
     if(m) visible++;
   });
   drawLinks();
@@ -1406,7 +1416,9 @@ function renderTags(){
 function chip(label,count,on,tag){
   const b = document.createElement('button');
   b.className = 'tag-chip'+(on?' on':'')+(tag?'':' all');
-  b.innerHTML = `${tag?'<span class="gdot"></span>':''}${label}<span class="cnt">${count}</span>`;
+  if(tag){ const dot=document.createElement('span'); dot.className='gdot'; b.appendChild(dot); }
+  b.appendChild(document.createTextNode(label));
+  const cnt=document.createElement('span'); cnt.className='cnt'; cnt.textContent=String(count); b.appendChild(cnt);
   if(tag) setTagVars(b, tag);
   return b;
 }
@@ -1450,8 +1462,10 @@ function renderManageList(){
     const row = document.createElement('div'); row.className='mtag-row';
     const label = n>0 ? `${n} card${n>1?'s':''}` : 'unused';
     row.innerHTML = `<span class="gswatch" title="Change gradient"></span>
-                     <span class="name" style="flex:1">${t}<span class="c">${label}</span></span>
+                     <span class="name" style="flex:1"><span class="tname"></span><span class="c"></span></span>
                      <button class="mtag-del">Delete</button>`;
+    row.querySelector('.tname').textContent = t;
+    row.querySelector('.c').textContent = label;
     const sw = row.querySelector('.gswatch');
     setTagVars(sw, t);
     sw.onclick = ()=> toggleGradEditor(row, t);
@@ -1496,7 +1510,8 @@ function renderTagPicker(container, selected, onChange, card, filter){
   existing.forEach(t=>{
     const b = document.createElement('button');
     b.className = 'tp-tag'+(selected.includes(t)?' on':'');
-    b.innerHTML = `<span class="gdot"></span>${t}`;
+    const gdot=document.createElement('span'); gdot.className='gdot'; b.appendChild(gdot);
+    b.appendChild(document.createTextNode(t));
     setTagVars(b, t);
     b.onclick = ()=>{
       const i = selected.indexOf(t);
@@ -1589,6 +1604,33 @@ window.addEventListener('mousemove', e=>{
   view.x=e.clientX-panStart.x; view.y=e.clientY-panStart.y; applyView();
 });
 window.addEventListener('mouseup', ()=>{ panning=false; viewport.classList.remove('panning'); document.body.classList.remove('is-interacting'); });
+
+/* Single global handlers for card drag — replaces per-card window listeners to prevent listener accumulation */
+window.addEventListener('mousemove', e=>{
+  if(!dragState) return;
+  const {c, off} = dragState;
+  dragState.moved = true;
+  c.x=(e.clientX-off.x-view.x)/view.k; c.y=(e.clientY-off.y-view.y)/view.k;
+  c.el.style.left=c.x+'px'; c.el.style.top=c.y+'px';
+  if(netMode) drawLinks();
+});
+window.addEventListener('mouseup', ()=>{
+  if(!dragState) return;
+  const {c, moved} = dragState;
+  dragState = null;
+  c.el.classList.remove('dragging');
+  document.body.classList.remove('is-interacting');
+  if(moved){
+    c.touchedAt=Date.now(); markDirty(c);
+    const ring = document.createElement('div');
+    ring.className = 'drop-ring';
+    const st = c.tags.length ? tagStyles[c.tags[0]] : null;
+    if(st) ring.style.setProperty('--ring-color', `color-mix(in srgb, ${st.g1} 60%, transparent)`);
+    ring.style.cssText += `width:${c.el.offsetWidth}px;height:${c.el.offsetHeight}px;left:${c.x}px;top:${c.y}px;`;
+    world.appendChild(ring);
+    ring.addEventListener('animationend', ()=>ring.remove(), {once:true});
+  }
+});
 viewport.addEventListener('wheel', e=>{
   if(!document.body.classList.contains('canvas')) return;
   e.preventDefault();
@@ -1636,42 +1678,24 @@ function animateView(tx,ty,tk){
 /* ---------------- Card drag + actions ---------------- */
 function wireCard(c){
   const el = c.el;
-  let dragging=false, off=null, moved=false;
   el.addEventListener('mousedown', e=>{
     if(!document.body.classList.contains('canvas')) return;
     if(e.target.closest('.mini')||e.target.closest('a')||e.target.closest('iframe')||e.target.closest('.status-badge')) return;
-    dragging=true; moved=false; el.classList.add('dragging');
+    dragState = {c, off:{x:e.clientX-c.x*view.k - view.x, y:e.clientY-c.y*view.k - view.y}, moved:false};
+    el.classList.add('dragging');
     document.body.classList.add('is-interacting');
-    off={x:e.clientX-c.x*view.k - view.x, y:e.clientY-c.y*view.k - view.y};
     e.stopPropagation();
-  });
-  window.addEventListener('mousemove', e=>{
-    if(!dragging) return;
-    moved=true;
-    c.x=(e.clientX-off.x-view.x)/view.k; c.y=(e.clientY-off.y-view.y)/view.k;
-    el.style.left=c.x+'px'; el.style.top=c.y+'px';
-    if(netMode) drawLinks();
-  });
-  window.addEventListener('mouseup', ()=>{
-    if(!dragging) return;
-    dragging=false; el.classList.remove('dragging');
-    document.body.classList.remove('is-interacting');
-    if(moved){
-      c.touchedAt=Date.now(); markDirty(c);
-      const ring = document.createElement('div');
-      ring.className = 'drop-ring';
-      const st = c.tags.length ? tagStyles[c.tags[0]] : null;
-      if(st) ring.style.setProperty('--ring-color', `color-mix(in srgb, ${st.g1} 60%, transparent)`);
-      ring.style.cssText += `width:${el.offsetWidth}px;height:${el.offsetHeight}px;left:${c.x}px;top:${c.y}px;`;
-      world.appendChild(ring);
-      ring.addEventListener('animationend', ()=>ring.remove(), {once:true});
-    }
   });
   el.querySelector('[data-act="del"]').onclick = async ()=>{
     cards=cards.filter(x=>x!==c); el.remove(); renderTags(); drawLinks(); applyFilter();
-    if(c.imagePath) await store.deleteImage(c.imagePath);
-    await store.deleteCard(c.id);
-    scheduleSave();
+    try {
+      if(c.imagePath) await store.deleteImage(c.imagePath);
+      await store.deleteCard(c.id);
+      scheduleSave();
+    } catch(e){
+      cards.push(c); buildCardEl(c); renderTags(); drawLinks(); applyFilter();
+      setSaveStatus('error');
+    }
   };
   el.querySelector('[data-act="edit"]').onclick = ()=> openModal(c);
   el.querySelectorAll('.ct[data-tag]').forEach(badge=>{
@@ -1801,6 +1825,7 @@ function suggestTags(c){
   // 4) type hints
   if(c.type==='image') out.add('screenshot');
   if(c.type==='embed') out.add('video');
+  if(c.mode) out.add(c.mode+'-mode');
   return [...out].filter(t=>!c.tags.includes(t)).slice(0,6);
 }
 /* Re-render the "Suggested" chips inside an open popover */
@@ -1841,14 +1866,14 @@ function openCardTagPicker(c){
   pop.className = 'card-tagpop';
   const linkFieldHtml = (c.type==='image')
     ? `<div class="ttl-pop" style="margin-bottom:6px">Link <span style="text-transform:none;font-weight:500;opacity:.7">(optional)</span></div>
-       <input class="link-field" placeholder="https://where-you-found-it…" value="${c.url||''}"/>`
+       <input class="link-field" placeholder="https://where-you-found-it…"/>`
     : '';
   pop.innerHTML = `
     <div class="pop-head">
       <span class="ttl-pop">Why save this?</span>
       <button class="pop-x" title="Close"><span class="ms">close</span></button>
     </div>
-    <textarea class="why-field" placeholder="A quick note to future you…">${c.reason||''}</textarea>
+    <textarea class="why-field" placeholder="A quick note to future you…"></textarea>
     ${linkFieldHtml}
     <div class="ttl-pop" style="margin-bottom:6px">Suggested</div>
     <div class="sg-row"></div>
@@ -1858,9 +1883,10 @@ function openCardTagPicker(c){
   c.el.appendChild(pop);
   pop.addEventListener('mousedown', e=>e.stopPropagation());
   const why = pop.querySelector('.why-field');
+  why.value = c.reason||'';
   why.addEventListener('input', ()=>{ c.reason = why.value; });
   const linkField = pop.querySelector('.link-field');
-  if(linkField) linkField.addEventListener('input', ()=>{ c.url = linkField.value.trim(); });
+  if(linkField){ linkField.value = c.url||''; linkField.addEventListener('input', ()=>{ c.url = linkField.value.trim(); }); }
   const host = pop.querySelector('.tp-host');
   renderTagPicker(host, c.tags, ()=>{ renderTags(); if(netMode) drawLinks(); }, c);
   renderSuggestRow(pop.querySelector('.sg-row'), c, ()=>{
@@ -1887,11 +1913,7 @@ function openCardTagPicker(c){
 function analyzeAndRefresh(c){
   runOCR(c); // best-effort, async; refreshes the card when done
   analyzeImage(c.img).then(({mode, palette})=>{
-    if(mode){
-      c.mode = mode;
-      const modeTag = mode+'-mode';
-      if(!c.tags.includes(modeTag)) c.tags.push(modeTag);
-    }
+    if(mode) c.mode = mode; // stored for suggestions; not auto-tagged
     if(palette) c.palette = palette;
     // refresh card visuals without destroying an open popover
     const pop = c.el?.querySelector('.card-tagpop');
@@ -1951,8 +1973,9 @@ viewport.addEventListener('drop', e=>{
   if(file && file.type.startsWith('image/')){
     const reader = new FileReader();
     reader.onload = async ev=>{
+      const isCanvas = document.body.classList.contains('canvas');
       const c = addCard({type:'image', title:file.name, img:ev.target.result, tags:[],
-        x:(e.clientX-view.x)/view.k, y:(e.clientY-view.y)/view.k});
+        x:isCanvas?(e.clientX-view.x)/view.k:0, y:isCanvas?(e.clientY-view.y)/view.k:0});
       await persistImage(c, ev.target.result);
       buildCardEl(c); renderTags(); openCardTagPicker(c);
       analyzeAndRefresh(c);
@@ -2058,29 +2081,26 @@ function openLightbox(c){
 function closeLightbox(){ lightbox.classList.remove('open'); lbCurrent=null; }
 document.getElementById('lbClose').onclick = closeLightbox;
 lightbox.addEventListener('click', e=>{ if(e.target===lightbox || e.target.id==='lbStage') closeLightbox(); });
-document.addEventListener('keydown', e=>{ if(e.key==='Escape' && lightbox.classList.contains('open')) closeLightbox(); });
 document.addEventListener('keydown', e=>{
   const si = document.getElementById('search');
   const typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName||'');
-  if(e.key==='/' && !typing){ e.preventDefault(); si.focus(); si.select(); }
-  if(e.key==='Escape' && document.activeElement===si){ si.value=''; query=''; applyFilter(); si.blur(); }
+  if(e.key==='/' && !typing){ e.preventDefault(); si.focus(); si.select(); return; }
+  if(e.key==='Escape'){
+    if(lightbox.classList.contains('open')){ closeLightbox(); return; }
+    if(modalBg.classList.contains('open')){ modalBg.classList.remove('open'); return; }
+    if(manageBg.classList.contains('open')){ manageBg.classList.remove('open'); return; }
+    if(document.activeElement===si){ si.value=''; query=''; applyFilter(); si.blur(); }
+  }
 });
-
-/* Convert a data-URL to a Blob */
-function dataUrlToBlob(dataUrl){
-  const [head, b64] = dataUrl.split(',');
-  const mime = (head.match(/data:([^;]+)/)||[])[1] || 'image/png';
-  const bin = atob(b64); const len = bin.length; const arr = new Uint8Array(len);
-  for(let i=0;i<len;i++) arr[i]=bin.charCodeAt(i);
-  return new Blob([arr], {type:mime});
-}
 
 document.getElementById('lbDownload').onclick = ()=>{
   if(!lbCurrent) return;
   const a = document.createElement('a');
   a.href = lbCurrent.img;
   const safe = (lbCurrent.title||'image').replace(/[^\w.-]+/g,'_').slice(0,40);
-  const ext = ((lbCurrent.img.match(/data:image\/(\w+)/)||[])[1]||'png');
+  const dataMatch = lbCurrent.img.match(/data:image\/(\w+)/);
+  const urlExt = lbCurrent.img.split('?')[0].match(/\.(\w+)$/);
+  const ext = dataMatch?.[1] || urlExt?.[1] || 'png';
   a.download = `${safe}.${ext}`;
   document.body.appendChild(a); a.click(); a.remove();
 };
@@ -2089,8 +2109,14 @@ document.getElementById('lbCopy').onclick = async ()=>{
   if(!lbCurrent) return;
   const btn = document.getElementById('lbCopy');
   try {
-    const blob = dataUrlToBlob(lbCurrent.img);
-    // ClipboardItem image copy (PNG widely supported); fall back to copying nothing gracefully
+    let blob;
+    if(lbCurrent.img.startsWith('data:')){
+      blob = b64ToBlob(lbCurrent.img);
+    } else {
+      const res = await fetch(lbCurrent.img);
+      if(!res.ok) throw new Error('fetch failed');
+      blob = await res.blob();
+    }
     await navigator.clipboard.write([ new ClipboardItem({ [blob.type]: blob }) ]);
     btn.innerHTML = '<span class="ms">check</span> Copied'; btn.classList.add('ok');
     setTimeout(()=>{ btn.innerHTML='<span class="ms">content_copy</span> Copy'; btn.classList.remove('ok'); }, 1600);
@@ -2104,9 +2130,7 @@ document.getElementById('lbCopy').onclick = async ()=>{
    what fixes the "touch laptop / iPad gets an unusable hover canvas" bug.
      - fine pointer (mouse) + wide   -> canvas (spatial pan/zoom)
      - coarse pointer OR mid width   -> grid (masonry, tap to open)
-     - narrow                        -> feed (single column)
-   The user can override via the topbar switcher; the override is remembered
-   until the viewport crosses into a tier that can't honor it. */
+     - narrow                        -> feed (single column) */
 const VIEWS = ['canvas','grid','feed'];
 const hasFinePointer = ()=> window.matchMedia('(pointer: fine)').matches;
 const hasHover       = ()=> window.matchMedia('(hover: hover)').matches;
