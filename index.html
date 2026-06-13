@@ -96,7 +96,7 @@
   .topbar {
     position: fixed; top: 0; left: 0; right: 0; z-index: 50; height: 56px;
     display: flex; align-items: center; gap: 20px; padding: 0 24px;
-    background: var(--color-charcoal);
+    background: rgba(15,16,17,0.82); backdrop-filter: blur(16px) saturate(1.4); -webkit-backdrop-filter: blur(16px) saturate(1.4);
     border-bottom: 1px solid var(--color-graphite);
   }
   .brand { font-size: 15px; font-weight: var(--w-510); color: var(--color-snow); display: flex; align-items: center; gap: 9px; }
@@ -145,9 +145,10 @@
     font-family: var(--font-inter); font-size: var(--text-body); font-weight: var(--w-reg);
     background: transparent; color: var(--color-fog);
     border: none; border-radius: var(--radius-buttons);
-    padding: 8px 12px; cursor: pointer; transition: color .15s, background .15s, border-color .15s; white-space: nowrap;
+    padding: 8px 12px; cursor: pointer; transition: color .15s, background .15s, border-color .15s, transform .1s; white-space: nowrap;
   }
   .btn:hover { color: var(--color-snow); }
+  .btn:active { transform: scale(0.96); opacity: 0.8; }
   .btn.on-mode { color: var(--color-indigo); }
   .btn.active {
     corner-shape: squircle; position: relative; overflow: hidden;
@@ -189,10 +190,11 @@
     font-size: var(--text-caption); font-weight: var(--w-reg);
     color: var(--color-fog); background: transparent;
     border: 1px solid var(--color-graphite); border-radius: var(--radius-pills);
-    padding: 5px 12px; cursor: pointer; transition: all .15s; white-space: nowrap;
+    padding: 5px 12px; cursor: pointer; transition: all .15s, transform .12s cubic-bezier(.16,1,.3,1); white-space: nowrap;
     font-family: var(--font-inter);
   }
-  .tag-chip:hover { border-color: var(--color-iron); color: var(--color-snow); }
+  .tag-chip:hover { border-color: var(--color-iron); color: var(--color-snow); transform: translateY(-1px); }
+  .tag-chip:active { transform: scale(0.95); }
   .tag-chip.on { color: var(--color-snow); background: var(--color-obsidian); border-color: var(--color-platinum); }
   .tag-chip .cnt { font-family: var(--font-mono); font-size: 10px; color: var(--color-slate); margin-left: 6px; }
   .tag-chip.on .cnt { color: var(--color-fog); }
@@ -238,11 +240,11 @@
     border: none; border-radius: var(--radius-cards);
     corner-shape: squircle;
     box-shadow: var(--shadow-inset-border), var(--shadow-sm); overflow: hidden;
-    cursor: grab; transition: box-shadow .2s, transform .15s;
-    animation: cardIn .35s cubic-bezier(.2,.7,.2,1) both;
+    cursor: grab; transition: box-shadow .25s, transform .2s cubic-bezier(.16,1,.3,1);
+    animation: cardIn .45s cubic-bezier(.16,1,.3,1) both;
   }
-  @keyframes cardIn { from{opacity:0; transform:translateY(8px) scale(.98)} to{opacity:1; transform:none} }
-  .card:hover { box-shadow: rgb(50,51,52) 0px 0px 0px 1px inset, var(--shadow-sm); }
+  @keyframes cardIn { from{opacity:0; transform:translateY(14px) scale(.96)} to{opacity:1; transform:none} }
+  .card:hover { box-shadow: rgb(50,51,52) 0px 0px 0px 1px inset, rgba(0,0,0,0.5) 0px 8px 24px -4px; transform: translateY(-2px); }
   .card.dragging { cursor: grabbing; z-index: 999 !important; box-shadow: rgb(50,51,52) 0px 0px 0px 1px inset, var(--shadow-xl); }
   .card.resurfaced { box-shadow: var(--color-indigo) 0px 0px 0px 1px inset, var(--shadow-xl); }
   .card.popover-open { overflow: visible; z-index: 1001; }
@@ -275,7 +277,7 @@
     border: 1px solid var(--color-graphite);
     border-radius: var(--radius-pills); padding: 3px 10px;
   }
-  .card .age { font-family: var(--font-mono); font-size: 10px; letter-spacing: -0.015em; color: var(--color-fog); margin-left: auto; }
+  .card .age { font-family: var(--font-mono); font-size: 10px; letter-spacing: -0.015em; color: var(--color-fog); margin-left: auto; font-variant-numeric: tabular-nums; }
   .card .embed { aspect-ratio: 16/9; width: 100%; border: 0; display: block; background: var(--color-obsidian); }
 
   .card-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 4px; opacity: 0; transition: opacity .15s; }
@@ -284,9 +286,10 @@
     width: 28px; height: 28px; border-radius: var(--radius-mini);
     background: var(--color-obsidian); border: 1px solid var(--color-graphite);
     color: var(--color-fog); cursor: pointer;
-    display: grid; place-items: center; line-height: 1; box-shadow: var(--shadow-sm); transition: all .15s;
+    display: grid; place-items: center; line-height: 1; box-shadow: var(--shadow-sm); transition: all .15s, transform .1s;
   }
   .mini:hover { color: var(--color-snow); border-color: var(--color-iron); }
+  .mini:active { transform: scale(0.88); }
 
   /* ---- Incomplete cards (no tags or no "why") — crimson focused edge ---- */
   .card.incomplete { box-shadow: rgba(235,87,87,0.55) 0px 0px 0px 1px inset, var(--shadow-sm); }
@@ -310,12 +313,15 @@
   /* line color/width come from per-line gradient attributes set in drawLinks() */
 
   /* ---- Hint ---- */
+  @keyframes hintIn { from{opacity:0; transform:translateX(-50%) translateY(8px)} to{opacity:1; transform:translateX(-50%)} }
   .hint {
     position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 45;
     font-size: var(--text-caption); color: var(--color-fog);
-    background: var(--color-charcoal); border-radius: var(--radius-pills);
+    background: rgba(15,16,17,0.82); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-radius: var(--radius-pills);
     box-shadow: var(--shadow-inset-border), var(--shadow-sm);
     padding: 9px 18px; display: flex; gap: 14px; align-items: center;
+    animation: hintIn .5s cubic-bezier(.16,1,.3,1) both;
   }
   .hint kbd {
     font-family: var(--font-mono); font-size: 10px; letter-spacing: -0.015em;
@@ -328,7 +334,7 @@
     position: fixed; top: 56px; right: 0; bottom: 0; width: 320px; z-index: 60;
     background: var(--color-charcoal); border-left: 1px solid var(--color-graphite);
     box-shadow: var(--shadow-xl);
-    transform: translateX(100%); transition: transform .35s cubic-bezier(.2,.7,.2,1);
+    transform: translateX(100%); transition: transform .45s cubic-bezier(.16,1,.3,1);
     padding: 24px; overflow-y: auto;
   }
   .panel.open { transform: none; }
@@ -362,10 +368,11 @@
   /* ---- Add modal ---- */
   .modal-bg { position: fixed; inset: 0; z-index: 80; background: rgba(8,9,10,0.7); backdrop-filter: blur(4px); display: none; place-items: center; }
   .modal-bg.open { display: grid; }
+  @keyframes modalIn { from{opacity:0; transform:scale(.96) translateY(10px)} to{opacity:1; transform:none} }
   .modal {
     width: 440px; max-width: 92vw; background: var(--color-charcoal);
     border: none; border-radius: var(--radius-modal); corner-shape: squircle;
-    padding: 24px; box-shadow: var(--shadow-inset-border), var(--shadow-xl); animation: cardIn .3s both;
+    padding: 24px; box-shadow: var(--shadow-inset-border), var(--shadow-xl); animation: modalIn .4s cubic-bezier(.16,1,.3,1) both;
   }
   .modal h3 { font-size: var(--text-subheading); font-weight: var(--w-510); letter-spacing: -0.2px; margin-bottom: 12px; color: var(--color-snow); }
   .modal label { font-family: var(--font-mono); font-size: 10px; color: var(--color-fog); display: block; margin: 14px 0 5px; text-transform: uppercase; letter-spacing: 0.06em; }
@@ -394,9 +401,10 @@
     font-size: var(--text-caption); font-weight: var(--w-reg); font-family: var(--font-inter);
     color: var(--color-fog); background: transparent;
     border: 1px solid var(--color-graphite); border-radius: var(--radius-badges);
-    padding: 5px 13px; cursor: pointer; transition: all .15s; white-space: nowrap;
+    padding: 5px 13px; cursor: pointer; transition: all .15s, transform .12s cubic-bezier(.16,1,.3,1); white-space: nowrap;
   }
-  .tp-tag:hover { color: var(--color-snow); border-color: var(--color-iron); }
+  .tp-tag:hover { color: var(--color-snow); border-color: var(--color-iron); transform: translateY(-1px); }
+  .tp-tag:active { transform: scale(0.94); }
   .tp-tag.on { color: var(--color-snow); background: var(--color-obsidian); border-color: var(--color-platinum); }
   .tp-new {
     font-size: var(--text-caption); background: var(--color-steel);
@@ -444,9 +452,10 @@
     font-size: var(--text-caption); font-weight: var(--w-reg); font-family: var(--font-inter);
     color: #98a1e8; background: var(--indigo-tint);
     border: 1px dashed rgba(94,106,210,0.5); border-radius: var(--radius-badges);
-    padding: 3px 10px; cursor: pointer; transition: all .15s; white-space: nowrap;
+    padding: 3px 10px; cursor: pointer; transition: all .15s, transform .12s cubic-bezier(.16,1,.3,1); white-space: nowrap;
   }
-  .sg-tag:hover { background: var(--indigo-tint-2); color: var(--color-mist); }
+  .sg-tag:hover { background: var(--indigo-tint-2); color: var(--color-mist); transform: translateY(-1px); }
+  .sg-tag:active { transform: scale(0.94); }
   .sg-tag::before { content: '+ '; }
 
   /* ---- "Needs context" affordance on incomplete cards ---- */
@@ -548,7 +557,9 @@
     color: #08090a; line-height: 1;
     box-shadow: var(--shadow-stack), var(--shadow-xl);
     animation: liquid-flow 5s ease-in-out infinite;
+    transition: transform .12s cubic-bezier(.16,1,.3,1), box-shadow .2s;
   }
+  body.flat .fab:active { transform: scale(0.91); box-shadow: var(--shadow-stack); }
   body.flat .modal { max-height: 86vh; overflow-y: auto; }
 
   /* --- Compact topbar when stacked (narrow widths only) --- */
@@ -691,6 +702,7 @@
 
   @media (prefers-reduced-motion: reduce){
     .card.has-grad, .card.has-grad:hover, .btn.active:hover, body.flat .fab { animation: none !important; }
+    .card, .tag-chip, .tp-tag, .sg-tag, .mini, .btn, body.flat .fab { transition: none !important; }
   }
 </style>
 
