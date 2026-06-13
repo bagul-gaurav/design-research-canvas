@@ -162,7 +162,7 @@
   }
   .btn.active:hover {
     color: #08090a;
-    animation: liquid-flow 2.6s ease-in-out infinite;
+    animation: liquid-flow 5s ease-in-out infinite;
     box-shadow: 0 4px 22px -4px rgba(56,249,215,0.55), var(--shadow-stack);
   }
   /* grain lives only in the gradient — CTA + FAB are the gradient surfaces now */
@@ -240,12 +240,13 @@
     border: none; border-radius: var(--radius-cards);
     corner-shape: squircle;
     box-shadow: var(--shadow-inset-border), var(--shadow-sm); overflow: hidden;
-    cursor: grab; transition: box-shadow .25s, transform .2s cubic-bezier(.16,1,.3,1);
+    cursor: grab; transition: box-shadow .25s, transform .2s cubic-bezier(.16,1,.3,1), opacity .3s ease, filter .3s ease;
     animation: cardIn .45s cubic-bezier(.16,1,.3,1) both;
   }
   @keyframes cardIn { from{opacity:0; transform:translateY(14px) scale(.96)} to{opacity:1; transform:none} }
   .card:hover { box-shadow: rgb(50,51,52) 0px 0px 0px 1px inset, rgba(0,0,0,0.5) 0px 8px 24px -4px; transform: translateY(-2px); }
   .card.dragging { cursor: grabbing; z-index: 999 !important; box-shadow: rgb(50,51,52) 0px 0px 0px 1px inset, var(--shadow-xl); }
+  .card.filtered-out { opacity: 0.12; filter: blur(1.5px); transform: scale(0.97); pointer-events: none; }
   .card.resurfaced { box-shadow: var(--color-indigo) 0px 0px 0px 1px inset, var(--shadow-xl); }
   .card.popover-open { overflow: visible; z-index: 1001; }
 
@@ -321,7 +322,7 @@
     border-radius: var(--radius-pills);
     box-shadow: var(--shadow-inset-border), var(--shadow-sm);
     padding: 9px 18px; display: flex; gap: 14px; align-items: center;
-    animation: hintIn .5s cubic-bezier(.16,1,.3,1) both;
+    animation: hintIn .35s cubic-bezier(.16,1,.3,1) both;
   }
   .hint kbd {
     font-family: var(--font-mono); font-size: 10px; letter-spacing: -0.015em;
@@ -334,10 +335,11 @@
     position: fixed; top: 56px; right: 0; bottom: 0; width: 320px; z-index: 60;
     background: var(--color-charcoal); border-left: 1px solid var(--color-graphite);
     box-shadow: var(--shadow-xl);
-    transform: translateX(100%); transition: transform .45s cubic-bezier(.16,1,.3,1);
+    transform: translateX(100%); opacity: 0;
+    transition: transform .45s cubic-bezier(.16,1,.3,1), opacity .25s ease;
     padding: 24px; overflow-y: auto;
   }
-  .panel.open { transform: none; }
+  .panel.open { transform: none; opacity: 1; }
   .panel h2 { font-size: var(--text-subheading); font-weight: var(--w-510); letter-spacing: -0.2px; color: var(--color-snow); }
   .panel p.lede { font-size: var(--text-caption); color: var(--color-fog); margin-top: 6px; line-height: 1.5; }
   .rsf-item {
@@ -366,14 +368,21 @@
   .mtag-del:hover { background: rgba(235,87,87,0.1); border-color: var(--color-crimson); }
 
   /* ---- Add modal ---- */
-  .modal-bg { position: fixed; inset: 0; z-index: 80; background: rgba(8,9,10,0.7); backdrop-filter: blur(4px); display: none; place-items: center; }
-  .modal-bg.open { display: grid; }
-  @keyframes modalIn { from{opacity:0; transform:scale(.96) translateY(10px)} to{opacity:1; transform:none} }
+  .modal-bg {
+    position: fixed; inset: 0; z-index: 80; background: rgba(8,9,10,0.7); backdrop-filter: blur(4px);
+    display: grid; place-items: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity .2s;
+  }
+  .modal-bg.open { opacity: 1; pointer-events: auto; }
   .modal {
     width: 440px; max-width: 92vw; background: var(--color-charcoal);
     border: none; border-radius: var(--radius-modal); corner-shape: squircle;
-    padding: 24px; box-shadow: var(--shadow-inset-border), var(--shadow-xl); animation: modalIn .4s cubic-bezier(.16,1,.3,1) both;
+    padding: 24px; box-shadow: var(--shadow-inset-border), var(--shadow-xl);
+    opacity: 0; transform: scale(.96) translateY(10px);
+    transition: transform .35s cubic-bezier(.16,1,.3,1), opacity .2s;
   }
+  .modal-bg.open .modal { opacity: 1; transform: none; }
   .modal h3 { font-size: var(--text-subheading); font-weight: var(--w-510); letter-spacing: -0.2px; margin-bottom: 12px; color: var(--color-snow); }
   .modal label { font-family: var(--font-mono); font-size: 10px; color: var(--color-fog); display: block; margin: 14px 0 5px; text-transform: uppercase; letter-spacing: 0.06em; }
   .modal input, .modal textarea {
@@ -556,9 +565,9 @@
       linear-gradient(120deg, #38f9d7, #66a6ff);
     color: #08090a; line-height: 1;
     box-shadow: var(--shadow-stack), var(--shadow-xl);
-    animation: liquid-flow 5s ease-in-out infinite;
     transition: transform .12s cubic-bezier(.16,1,.3,1), box-shadow .2s;
   }
+  body.flat .fab:hover { animation: liquid-flow 5s ease-in-out infinite; }
   body.flat .fab:active { transform: scale(0.91); box-shadow: var(--shadow-stack); }
   body.flat .modal { max-height: 86vh; overflow-y: auto; }
 
@@ -597,7 +606,7 @@
   body.grid.narrow .card { margin-bottom: 14px; }
   body.grid .card img { max-height: 260px; }
   /* the gradient hover spin still works on grid with a fine pointer */
-  body.grid.has-hover .card.has-grad:hover { animation: grad-rotate 3s linear infinite; }
+  body.grid.has-hover .card.has-grad:hover { animation: grad-rotate 4s cubic-bezier(.37,0,.63,1) infinite; }
 
   /* zoom controls */
   .zoom { position: fixed; left: 24px; bottom: 24px; z-index: 45; display: flex; flex-direction: column; gap: 6px; }
@@ -632,14 +641,14 @@
     transition: box-shadow .35s ease;
   }
   .card.has-grad:hover {
-    animation: grad-rotate 3s linear infinite;
+    animation: grad-rotate 4s cubic-bezier(.37,0,.63,1) infinite;
     box-shadow:
       0 0 44px -4px color-mix(in srgb, var(--g1) 55%, transparent),
       0 0 16px -2px color-mix(in srgb, var(--g2) 48%, transparent),
       var(--shadow-sm);
   }
   .card.has-grad.dragging {
-    animation: grad-rotate 3s linear infinite;
+    animation: grad-rotate 4s cubic-bezier(.37,0,.63,1) infinite;
     box-shadow: 0 0 44px -4px color-mix(in srgb, var(--g1) 55%, transparent), var(--shadow-xl);
   }
   .card.has-grad.resurfaced { box-shadow: 0 0 0 3px var(--indigo-tint-2), var(--shadow-xl); }
@@ -700,9 +709,27 @@
     padding: 1px; cursor: pointer;
   }
 
+  /* ---- Drop ring ---- */
+  @keyframes dropRing { to { transform: scale(2.4); opacity: 0; } }
+  .drop-ring {
+    position: absolute; border-radius: var(--radius-cards); pointer-events: none;
+    border: 1.5px solid var(--ring-color, rgba(255,255,255,0.15));
+    opacity: 0.55; transform-origin: center;
+    animation: dropRing 520ms cubic-bezier(.2,0,.8,1) forwards;
+    z-index: 998;
+  }
+
+  /* ---- Interaction pause ---- */
+  body.is-interacting .fab { animation-play-state: paused; }
+
   @media (prefers-reduced-motion: reduce){
-    .card.has-grad, .card.has-grad:hover, .btn.active:hover, body.flat .fab { animation: none !important; }
-    .card, .tag-chip, .tp-tag, .sg-tag, .mini, .btn, body.flat .fab { transition: none !important; }
+    .card, .card.has-grad, .card.has-grad:hover, .btn.active, .btn.active:hover, .fab, .hint { animation: none !important; }
+    .card, .tag-chip, .tp-tag, .sg-tag, .mini, .btn, .fab, .panel, .modal, .modal-bg { transition: none !important; }
+    .modal-bg { opacity: 1; pointer-events: none; }
+    .modal-bg.open { pointer-events: auto; }
+    .modal { opacity: 1; transform: none; }
+    .drop-ring { display: none; }
+    .card.filtered-out { transition: none !important; }
   }
 </style>
 
@@ -1260,7 +1287,8 @@ function buildCardEl(c){
 }
 
 function renderAll(){
-  cards.forEach(c => { if(!c.el) buildCardEl(c); });
+  let idx = 0;
+  cards.forEach(c => { if(!c.el){ buildCardEl(c); c.el.style.animationDelay = Math.min(idx++ * 40, 200)+'ms'; } });
   applyFilter();
   drawLinks();
   orderFeed();
@@ -1277,7 +1305,7 @@ function applyFilter(){
   let visible = 0;
   cards.forEach(c=>{
     const m = matches(c);
-    c.el.style.display = m ? '' : 'none';
+    c.el.classList.toggle('filtered-out', !m);
     c.hidden = !m;
     if(m) visible++;
   });
@@ -1553,13 +1581,14 @@ viewport.addEventListener('mousedown', e=>{
   if(!document.body.classList.contains('canvas')) return;
   if(e.target.closest('.card')) return;
   panning=true; viewport.classList.add('panning');
+  document.body.classList.add('is-interacting');
   panStart={x:e.clientX-view.x, y:e.clientY-view.y};
 });
 window.addEventListener('mousemove', e=>{
   if(!panning) return;
   view.x=e.clientX-panStart.x; view.y=e.clientY-panStart.y; applyView();
 });
-window.addEventListener('mouseup', ()=>{ panning=false; viewport.classList.remove('panning'); });
+window.addEventListener('mouseup', ()=>{ panning=false; viewport.classList.remove('panning'); document.body.classList.remove('is-interacting'); });
 viewport.addEventListener('wheel', e=>{
   if(!document.body.classList.contains('canvas')) return;
   e.preventDefault();
@@ -1612,6 +1641,7 @@ function wireCard(c){
     if(!document.body.classList.contains('canvas')) return;
     if(e.target.closest('.mini')||e.target.closest('a')||e.target.closest('iframe')||e.target.closest('.status-badge')) return;
     dragging=true; moved=false; el.classList.add('dragging');
+    document.body.classList.add('is-interacting');
     off={x:e.clientX-c.x*view.k - view.x, y:e.clientY-c.y*view.k - view.y};
     e.stopPropagation();
   });
@@ -1623,7 +1653,19 @@ function wireCard(c){
     if(netMode) drawLinks();
   });
   window.addEventListener('mouseup', ()=>{
-    if(dragging){ dragging=false; el.classList.remove('dragging'); if(moved){ c.touchedAt=Date.now(); markDirty(c); } }
+    if(!dragging) return;
+    dragging=false; el.classList.remove('dragging');
+    document.body.classList.remove('is-interacting');
+    if(moved){
+      c.touchedAt=Date.now(); markDirty(c);
+      const ring = document.createElement('div');
+      ring.className = 'drop-ring';
+      const st = c.tags.length ? tagStyles[c.tags[0]] : null;
+      if(st) ring.style.setProperty('--ring-color', `color-mix(in srgb, ${st.g1} 60%, transparent)`);
+      ring.style.cssText += `width:${el.offsetWidth}px;height:${el.offsetHeight}px;left:${c.x}px;top:${c.y}px;`;
+      world.appendChild(ring);
+      ring.addEventListener('animationend', ()=>ring.remove(), {once:true});
+    }
   });
   el.querySelector('[data-act="del"]').onclick = async ()=>{
     cards=cards.filter(x=>x!==c); el.remove(); renderTags(); drawLinks(); applyFilter();
